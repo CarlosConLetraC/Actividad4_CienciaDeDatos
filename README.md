@@ -39,12 +39,12 @@ Cada programa Lua se ejecuta en un entorno aislado con:
 ## Sistemas compatibles
 
 - Debian:
-    13 (Trixie)
-    12 (Bookworm)
+    - 13 (Trixie)
+    - 12 (Bookworm)
 - Ubuntu:
-    22.04 (Jammy)
-    23.04 (Lunar Lobster)
-    24.04 (Noble)
+    - 22.04 (Jammy)
+    - 23.04 (Lunar Lobster)
+    - 24.04 (Noble)
 
 ## Instalación
 
