@@ -1,0 +1,16 @@
+*.class
+*.log
+data/*.csv
+data/stats.json
+data/actividad*
+entorno/
+build/
+plots/
+.vscode/
+.wget-hsts
+.python_history
+.sudo_as_admin_successful
+.bash_history
+.cache
+--exec
+.env
