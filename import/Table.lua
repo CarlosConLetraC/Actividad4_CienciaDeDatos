@@ -423,7 +423,7 @@ smt(Convert, {
 })
 
 DoTable = function(t, _seen)
-	local seen = _seen or {}
+	local seen = _seen or {totaljumps = 0}
 	local started = false
 	local str = ""
 	local tab = string_rep(_Settings.TAB_FORMAT, seen.totaljumps)
