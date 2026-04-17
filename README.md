@@ -38,14 +38,19 @@ Cada programa Lua se ejecuta en un entorno aislado con:
 
 ## Sistemas compatibles
 
-- Debian 13 (Trixie)
-- Ubuntu 22.04 (Jammy)
+- Debian:
+    13 (Trixie)
+    12 (Bookworm)
+- Ubuntu:
+    22.04 (Jammy)
+    23.04 (Lunar Lobster)
+    24.04 (Noble)
 
 ## Instalación
 
 ```bash
-git clone --recursive https://github.com/CarlosConLetraC/Actividad3_CienciaDeDatos.git
-cd Actividad3_CienciaDeDatos
+git clone --recursive https://github.com/CarlosConLetraC/Actividad4_CienciaDeDatos.git
+cd Actividad4_CienciaDeDatos
 chmod +x cmd initconsole runclient *.sh
 ```
 
