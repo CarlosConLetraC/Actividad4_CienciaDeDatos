@@ -135,7 +135,7 @@ sellingprice = β0 + β1(odometer) + β2(mmr)
 
 # Distribución del Trabajo
 
-Se ejecutaron **10 workers concurrentes**, cada uno procesando aproximadamente **13,971 registros**.
+Se ejecutaron **10 workers concurrentes**, cada uno procesando aproximadamente **55,884 registros**.
 
 ---
 
