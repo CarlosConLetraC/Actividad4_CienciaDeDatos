@@ -12,9 +12,7 @@ extern "C" {
 #include <algorithm>
 #include <limits.h>
 
-// =====================================================
 // LUA COMPAT (LuaJIT / Lua 5.1)
-// =====================================================
 #ifndef lua_rawlen
 #define lua_rawlen(L, i) lua_objlen(L, i)
 #endif
@@ -26,9 +24,7 @@ static void luaL_newlib(lua_State* L, const luaL_Reg* l) {
 }
 #endif
 
-// =====================================================
 // UTIL
-// =====================================================
 static inline std::string trim(std::string s) {
     size_t i = 0;
     size_t j = s.size();
@@ -77,9 +73,7 @@ static inline std::string to_upper(std::string s) {
     return s;
 }
 
-// =====================================================
 // INVALID TOKENS
-// =====================================================
 static inline bool is_invalid(const std::string& s) {
     std::string v = to_upper(clean_token(s));
 
@@ -92,9 +86,7 @@ static inline bool is_invalid(const std::string& s) {
     );
 }
 
-// =====================================================
 // SAFE NUMBER PARSE
-// =====================================================
 static inline bool to_number(const std::string& s, double& out) {
     std::string v = clean_token(s);
 
@@ -113,9 +105,7 @@ static inline bool to_number(const std::string& s, double& out) {
     return (*end == '\0');
 }
 
-// =====================================================
 // STRUCT
-// =====================================================
 struct CSVTable {
     int rows;
     int cols;
@@ -127,9 +117,7 @@ struct CSVTable {
     CSVTable() : rows(0), cols(0) {}
 };
 
-// =====================================================
 // SPLIT CSV
-// =====================================================
 static std::vector<std::string> split_line(const std::string& line) {
 
     std::vector<std::string> out;
@@ -169,9 +157,7 @@ static std::string unquote(std::string s) {
     return clean_token(s);
 }
 
-// =====================================================
 // READ COLUMNS
-// =====================================================
 static int l_read_columns(lua_State* L) {
 
     const char* path = luaL_checkstring(L, 1);
@@ -282,9 +268,7 @@ static int l_read_columns(lua_State* L) {
     return 1;
 }
 
-// =====================================================
 // SAVE COLUMNS
-// =====================================================
 static int l_save_columns(lua_State* L) {
 
     luaL_checktype(L, 1, LUA_TTABLE);
@@ -387,9 +371,7 @@ static int l_save_columns(lua_State* L) {
     return 1;
 }
 
-// =====================================================
 // COUNT ROWS
-// =====================================================
 static int l_count_rows(lua_State* L) {
 
     const char* path = luaL_checkstring(L, 1);
@@ -410,9 +392,7 @@ static int l_count_rows(lua_State* L) {
     return 1;
 }
 
-// =====================================================
 // VARIANCE
-// =====================================================
 static int l_variance(lua_State* L) {
 
     luaL_checktype(L, 1, LUA_TTABLE);
@@ -458,9 +438,7 @@ static int l_variance(lua_State* L) {
     return 1;
 }
 
-// =====================================================
 // TO NUMBER
-// =====================================================
 static int l_to_number(lua_State* L) {
 
     const char* s = luaL_checkstring(L, 1);
@@ -475,9 +453,7 @@ static int l_to_number(lua_State* L) {
     return 1;
 }
 
-// =====================================================
 // EACH
-// =====================================================
 static int l_each(lua_State* L) {
 
     const char* path = luaL_checkstring(L, 1);
@@ -588,9 +564,7 @@ static int l_each(lua_State* L) {
     return 0;
 }
 
-// =====================================================
 // MODULE
-// =====================================================
 extern "C" {
 
 static const luaL_Reg funcs[] = {
