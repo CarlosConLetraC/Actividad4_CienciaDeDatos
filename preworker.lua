@@ -26,9 +26,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 	local totalRows = #priceCol
 
-	-- =================================================
 	-- SHARDING
-	-- =================================================
 	local base = math_floor(totalRows / totalWorkers)
 	local extra = totalRows % totalWorkers
 
@@ -45,17 +43,13 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 	local end_row = start_row + limit - 1
 
-	-- =================================================
 	-- OUTPUT CSV
-	-- =================================================
 	local outputCSV = string_format("%s%d.csv", outputPrefix, workerId)
 
 	local out = assert(io.open(outputCSV, "w"))
 	out:write("sellingprice,odometer,mmr\n")
 
-	-- =================================================
 	-- DATASET
-	-- =================================================
 	local dataset = {}
 
 	local price_list = {}
@@ -102,20 +96,14 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 		return
 	end
 
-	-- =================================================
 	-- RANDOMIZE
-	-- =================================================
 	Table.shuffle(dataset)
 
-	-- =================================================
 	-- CORRELATIONS (C MODULE)
-	-- =================================================
 	local corr_odometer = cstats.corr(odo_list, price_list)
 	local corr_mmr      = cstats.corr(mmr_list, price_list)
 
-	-- =================================================
 	-- MODEL
-	-- =================================================
 	local model = cml.LinearRegression({
 		features = {"Odometer", "MMR"},
 		target = "Price"
@@ -123,9 +111,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 	local result = model:fit(dataset, 0.01, 1000, 0.8)
 
-	-- =================================================
 	-- DEBUG
-	-- =================================================
 	system.print("===== WORKER " .. workerId .. " =====")
 
 	system.print("R2 Train:", result.train.r2)
@@ -137,16 +123,13 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	system.print("RMSE Train:", result.train.rmse)
 	system.print("RMSE Test:", result.test.rmse)
 
-	-- =================================================
 	-- PREDICTIONS
-	-- =================================================
 	local predictions = {}
 
 	local y_real = {}
 	local y_pred = {}
 
-	for i = 1, #dataset do
-
+	for i = 1, #dataset, 1 do
 		local pred = model:predict(dataset[i])
 		local real = dataset[i].Price
 
@@ -163,16 +146,12 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 		})
 	end
 
-	-- =================================================
 	-- EXTRA GLOBAL METRICS (C MODULE)
-	-- =================================================
 	local full_r2   = cstats.r2(y_real, y_pred)
 	local full_mse  = cstats.mse(y_real, y_pred)
 	local full_rmse = full_mse ^ 0.5
 
-	-- =================================================
 	-- SAVE JSON
-	-- =================================================
 	local train_size = math_floor(#dataset * 0.8)
 	local test_size  = #dataset - train_size
 

@@ -171,7 +171,8 @@ if [ -d "$CPPLIBS_DIR" ]; then
 		fi
 	done
 else
-	prettyprint 1 "No existe cpplibs/, se omite compilación C++"
+	prettyprint 2 "No existe o no se pudo crear directorio cpplibs/"
+	exit 1
 fi
 
 prettyprint 0 "Configurando entorno Python. . ."
