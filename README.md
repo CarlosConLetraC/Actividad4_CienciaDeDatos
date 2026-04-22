@@ -1,7 +1,7 @@
 ## Casos de uso implementados
 
 - Actividad 4: Ciencia de datos distribuida sobre dataset de autos  
-Ver documentación en `ACTIVIDAD4.md`
+Ver documentación en `ACTIVIDAD4_parte1.md`
 
 ---
 

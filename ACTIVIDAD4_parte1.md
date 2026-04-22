@@ -66,7 +66,7 @@ El sistema usa **Moduler**, una arquitectura tipo scheduler/worker que ejecuta s
 
 ## Flujo General
 
-Dataset CSV → Particionado Automático → 40 Workers Paralelos → Entrenamiento Independiente → JSON por Worker → Consolidación Python → Reporte Final
+Dataset CSV → Particionado Automático → 10 Workers Paralelos → Entrenamiento Independiente → JSON por Worker → Consolidación Python → Reporte Final
 
 ---
 
@@ -135,7 +135,7 @@ sellingprice = β0 + β1(odometer) + β2(mmr)
 
 # Distribución del Trabajo
 
-Se ejecutaron **40 workers concurrentes**, cada uno procesando aproximadamente **13,971 registros**.
+Se ejecutaron **10 workers concurrentes**, cada uno procesando aproximadamente **13,971 registros**.
 
 ---
 
@@ -174,7 +174,7 @@ Se ejecutaron **40 workers concurrentes**, cada uno procesando aproximadamente *
 
 # Mejor Worker
 
-- Worker 40
+- Worker 10
 - R² Test = 0.983395
 
 # Peor Worker
