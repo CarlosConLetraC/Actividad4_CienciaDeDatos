@@ -423,10 +423,484 @@ static const luaL_Reg lib[] = {
     {NULL, NULL}
 };
 
+
+// =====================================================
+// LOGISTIC REGRESSION
+// =====================================================
+struct LogisticRegression {
+
+    std::vector<std::string> features;
+    std::string target;
+
+    std::vector<double> weights;
+
+    std::vector<std::vector<double>> X;
+    std::vector<double> y;
+
+    std::vector<double> mean_x;
+    std::vector<double> std_x;
+
+    // -----------------------------------------
+    // LOAD DATASET
+    // -----------------------------------------
+    void build_matrix(lua_State* L, int idx) {
+
+        X.clear();
+        y.clear();
+
+        int n = (int)lua_rawlen(L, idx);
+        int k = (int)features.size();
+
+        for (int i = 1; i <= n; i++) {
+
+            lua_rawgeti(L, idx, i);
+
+            std::vector<double> row(k);
+            bool ok = true;
+
+            for (int j = 0; j < k; j++) {
+
+                lua_getfield(L, -1, features[j].c_str());
+                double v = to_number(L, -1);
+                lua_pop(L, 1);
+
+                if (!std::isfinite(v))
+                    ok = false;
+
+                row[j] = v;
+            }
+
+            lua_getfield(L, -1, target.c_str());
+            double yt = to_number(L, -1);
+            lua_pop(L, 1);
+
+            lua_pop(L, 1);
+
+            if (!ok || !std::isfinite(yt))
+                continue;
+
+            yt = (yt >= 0.5) ? 1.0 : 0.0;
+
+            X.push_back(row);
+            y.push_back(yt);
+        }
+    }
+
+    // -----------------------------------------
+    // NORMALIZATION
+    // -----------------------------------------
+    void compute_stats() {
+
+        int n = (int)X.size();
+        int k = (int)features.size();
+
+        mean_x.assign(k, 0.0);
+        std_x.assign(k, 0.0);
+
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < k; j++)
+                mean_x[j] += X[i][j];
+
+        for (int j = 0; j < k; j++)
+            mean_x[j] /= n;
+
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < k; j++) {
+                double d = X[i][j] - mean_x[j];
+                std_x[j] += d * d;
+            }
+        }
+
+        for (int j = 0; j < k; j++)
+            std_x[j] = std::sqrt(std_x[j] / n + 1e-12);
+    }
+
+    void normalize() {
+
+        int n = (int)X.size();
+        int k = (int)features.size();
+
+        compute_stats();
+
+        for (int i = 0; i < n; i++)
+            for (int j = 0; j < k; j++)
+                X[i][j] = (X[i][j] - mean_x[j]) / std_x[j];
+    }
+
+    // -----------------------------------------
+    // SIGMOID
+    // -----------------------------------------
+    static inline double sigmoid(double z) {
+
+        if (z > 35.0) return 1.0;
+        if (z < -35.0) return 0.0;
+
+        return 1.0 / (1.0 + std::exp(-z));
+    }
+
+    // -----------------------------------------
+    // TRAIN
+    // -----------------------------------------
+    void fit(double lr, int epochs) {
+
+        int n = (int)X.size();
+        int k = (int)features.size();
+
+        weights.assign(k + 1, 0.0);
+
+        for (int e = 0; e < epochs; e++) {
+
+            std::vector<double> grad(k + 1, 0.0);
+
+            for (int i = 0; i < n; i++) {
+
+                double z = weights[0];
+
+                for (int j = 0; j < k; j++)
+                    z += weights[j + 1] * X[i][j];
+
+                double pred = sigmoid(z);
+                double err  = pred - y[i];
+
+                grad[0] += err;
+
+                for (int j = 0; j < k; j++)
+                    grad[j + 1] += err * X[i][j];
+            }
+
+            for (int j = 0; j <= k; j++)
+                weights[j] -= lr * grad[j] / n;
+        }
+    }
+
+    // -----------------------------------------
+    // PROBABILITY
+    // -----------------------------------------
+    double probability_row(lua_State* L, int idx) {
+
+        int k = (int)features.size();
+
+        double z = weights[0];
+
+        for (int j = 0; j < k; j++) {
+
+            lua_getfield(L, idx, features[j].c_str());
+            double v = to_number(L, -1);
+            lua_pop(L, 1);
+
+            v = (v - mean_x[j]) / std_x[j];
+
+            z += weights[j + 1] * v;
+        }
+
+        return sigmoid(z);
+    }
+
+    double predict_row(lua_State* L, int idx) {
+        return probability_row(L, idx) >= 0.5 ? 1.0 : 0.0;
+    }
+
+    // -----------------------------------------
+    // ACCURACY
+    // -----------------------------------------
+    double accuracy(lua_State* L, int idx) {
+
+        int n = (int)lua_rawlen(L, idx);
+        int ok = 0;
+        int total = 0;
+
+        for (int i = 1; i <= n; i++) {
+
+            lua_rawgeti(L, idx, i);
+
+            lua_getfield(L, -1, target.c_str());
+            double real = to_number(L, -1);
+            lua_pop(L, 1);
+
+            if (std::isfinite(real)) {
+
+                double pred = predict_row(L, -1);
+
+                if ((real >= 0.5 && pred == 1.0) ||
+                    (real < 0.5 && pred == 0.0))
+                    ok++;
+
+                total++;
+            }
+
+            lua_pop(L, 1);
+        }
+
+        if (total == 0)
+            return 0.0;
+
+        return (double)ok / total;
+    }
+};
+
+static LogisticRegression* check_logr(lua_State* L) {
+    return *(LogisticRegression**)luaL_checkudata(
+        L, 1, "cml.LogisticRegression"
+    );
+}
+
+// -----------------------------------------
+static int logr_new(lua_State* L) {
+
+    auto** obj =
+        (LogisticRegression**)lua_newuserdata(
+            L, sizeof(LogisticRegression*)
+        );
+
+    *obj = new LogisticRegression();
+
+    luaL_getmetatable(L, "cml.LogisticRegression");
+    lua_setmetatable(L, -2);
+
+    lua_getfield(L, 1, "features");
+
+    int n = (int)lua_rawlen(L, -1);
+
+    for (int i = 1; i <= n; i++) {
+        lua_rawgeti(L, -1, i);
+        (*obj)->features.push_back(lua_tostring(L, -1));
+        lua_pop(L, 1);
+    }
+
+    lua_pop(L, 1);
+
+    lua_getfield(L, 1, "target");
+    (*obj)->target = lua_tostring(L, -1);
+    lua_pop(L, 1);
+
+    return 1;
+}
+
+// -----------------------------------------
+static int logr_normalize(lua_State* L) {
+    auto* m = check_logr(L);
+    m->normalize();
+    return 0;
+}
+
+// -----------------------------------------
+static int logr_train(lua_State* L) {
+    auto* m = check_logr(L);
+
+    double lr  = luaL_optnumber(L, 2, 0.01);
+    int epochs = (int)luaL_optinteger(L, 3, 1000);
+
+    m->fit(lr, epochs);
+    return 0;
+}
+
+// -----------------------------------------
+static int logr_load(lua_State* L) {
+    auto* m = check_logr(L);
+    m->build_matrix(L, 2);
+    return 0;
+}
+
+// -----------------------------------------
+static int logr_predict(lua_State* L) {
+    auto* m = check_logr(L);
+    lua_pushnumber(L, m->predict_row(L, 2));
+    return 1;
+}
+
+// -----------------------------------------
+static int logr_probability(lua_State* L) {
+    auto* m = check_logr(L);
+    lua_pushnumber(L, m->probability_row(L, 2));
+    return 1;
+}
+
+// -----------------------------------------
+static int logr_accuracy(lua_State* L) {
+    auto* m = check_logr(L);
+    lua_pushnumber(L, m->accuracy(L, 2));
+    return 1;
+}
+
+// -----------------------------------------
+static int logr_gc(lua_State* L) {
+
+    auto** obj =
+        (LogisticRegression**)luaL_checkudata(
+            L, 1, "cml.LogisticRegression"
+        );
+
+    delete *obj;
+    return 0;
+}
+
+// -----------------------------------------
+static int logr_fit(lua_State* L) {
+    auto* m = check_logr(L);
+
+    double lr    = luaL_optnumber(L, 3, 0.01);
+    int epochs   = (int)luaL_optinteger(L, 4, 1000);
+    double ratio = luaL_optnumber(L, 5, 0.8);
+
+    // cargar dataset
+    m->build_matrix(L, 2);
+
+    int n = (int)m->X.size();
+    if (n < 2) {
+        lua_newtable(L);
+        return 1;
+    }
+
+    // split
+    int split = (int)(n * ratio);
+    if (split < 1) split = 1;
+    if (split >= n) split = n - 1;
+
+    std::vector<std::vector<double>> Xtrain(
+        m->X.begin(), m->X.begin() + split
+    );
+    std::vector<double> ytrain(
+        m->y.begin(), m->y.begin() + split
+    );
+
+    std::vector<std::vector<double>> Xtest(
+        m->X.begin() + split, m->X.end()
+    );
+    std::vector<double> ytest(
+        m->y.begin() + split, m->y.end()
+    );
+
+    // entrenar SOLO con train
+    m->X = Xtrain;
+    m->y = ytrain;
+
+    m->normalize();
+    m->fit(lr, epochs);
+
+    // ---------------- TRAIN ACCURACY ----------------
+    int ok_train = 0;
+    for (int i = 0; i < (int)Xtrain.size(); i++) {
+
+        double z = m->weights[0];
+
+        for (int j = 0; j < (int)m->features.size(); j++)
+            z += m->weights[j + 1] * m->X[i][j];
+
+        double pred = LogisticRegression::sigmoid(z) >= 0.5 ? 1.0 : 0.0;
+
+        if (pred == ytrain[i])
+            ok_train++;
+    }
+
+    double acc_train = (double)ok_train / Xtrain.size();
+
+    // ---------------- TEST ACCURACY ----------------
+    int ok_test = 0;
+    for (int i = 0; i < (int)Xtest.size(); i++) {
+
+        double z = m->weights[0];
+
+        for (int j = 0; j < (int)m->features.size(); j++) {
+
+            double v =
+                (Xtest[i][j] - m->mean_x[j]) /
+                (m->std_x[j] + 1e-12);
+
+            z += m->weights[j + 1] * v;
+        }
+
+        double pred = LogisticRegression::sigmoid(z) >= 0.5 ? 1.0 : 0.0;
+
+        if (pred == ytest[i])
+            ok_test++;
+    }
+
+    double acc_test = (double)ok_test / Xtest.size();
+
+    // ---------------- RETURN LUA TABLE ----------------
+    lua_newtable(L);
+
+    // TRAIN
+    lua_newtable(L);
+    lua_pushnumber(L, acc_train);
+    lua_setfield(L, -2, "accuracy");
+
+    lua_pushnumber(L, 1.0 - acc_train);
+    lua_setfield(L, -2, "loss");
+
+    lua_setfield(L, -2, "train");
+
+    // TEST
+    lua_newtable(L);
+    lua_pushnumber(L, acc_test);
+    lua_setfield(L, -2, "accuracy");
+
+    lua_pushnumber(L, 1.0 - acc_test);
+    lua_setfield(L, -2, "loss");
+
+    lua_setfield(L, -2, "test");
+
+    return 1;
+}
+
+static int logr_get_weights(lua_State* L) {
+    auto* m = check_logr(L);
+
+    lua_newtable(L);
+
+    for (size_t i = 0; i < m->weights.size(); i++) {
+        lua_pushnumber(L, m->weights[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+
+    return 1;
+}
+
+static int logr_export(lua_State* L) {
+    auto* m = check_logr(L);
+
+    lua_newtable(L);
+
+    // features
+    lua_newtable(L);
+    for (size_t i = 0; i < m->features.size(); i++) {
+        lua_pushstring(L, m->features[i].c_str());
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_setfield(L, -2, "features");
+
+    // weights
+    lua_newtable(L);
+    for (size_t i = 0; i < m->weights.size(); i++) {
+        lua_pushnumber(L, m->weights[i]);
+        lua_rawseti(L, -2, i + 1);
+    }
+    lua_setfield(L, -2, "weights");
+
+    // bias (seguro)
+    lua_pushnumber(L, m->weights.empty() ? 0.0 : m->weights[0]);
+    lua_setfield(L, -2, "bias");
+
+    return 1;
+}
+
+static const luaL_Reg logistic_methods[] = {
+    {"load",        logr_load},
+    {"normalize",   logr_normalize},
+    {"train",       logr_train},
+    {"predict",     logr_predict},
+    {"probability", logr_probability},
+    {"accuracy",    logr_accuracy},
+    {"fit",         logr_fit},
+    {"get_weights", logr_get_weights},
+    {"export",      logr_export},
+    {NULL, NULL}
+};
+
 // MODULE ENTRY
 extern "C"
 int luaopen_cml(lua_State* L) {
-
+    // LinearRegression metatable
     luaL_newmetatable(L, "cml.LinearRegression");
 
     lua_pushvalue(L, -1);
@@ -439,7 +913,27 @@ int luaopen_cml(lua_State* L) {
 
     lua_pop(L, 1);
 
-    luaL_newlib(L, lib);
+    // LogisticRegression metatable
+    luaL_newmetatable(L, "cml.LogisticRegression");
+
+    lua_pushvalue(L, -1);
+    lua_setfield(L, -2, "__index");
+
+    luaL_setfuncs(L, logistic_methods, 0);
+
+    lua_pushcfunction(L, logr_gc);
+    lua_setfield(L, -2, "__gc");
+
+    lua_pop(L, 1);
+
+    // Main module table
+    lua_newtable(L);
+
+    lua_pushcfunction(L, lr_new);
+    lua_setfield(L, -2, "LinearRegression");
+
+    lua_pushcfunction(L, logr_new);
+    lua_setfield(L, -2, "LogisticRegression");
 
     return 1;
 }

@@ -7,9 +7,7 @@ local math_floor = math.floor
 local math_abs = math.abs
 local table_insert = table.insert
 
--- =====================================================
 -- START
--- =====================================================
 local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 	workerId = tonumber(workerId)

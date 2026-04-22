@@ -157,9 +157,15 @@ end
 
 function system.curldownload(url, useLocalFile)
 	blund(os_execute("ls /usr/bin/curl > /dev/null 2>&1") == 0, "curl not installed")
-	local f = io_popen("curl -s \"".. url .."\"")
-	if useLocalFile == true then return f end
-	
+	if useLocalFile == true then
+		local tmp = os.tmpname()
+		local cmd = 'curl -L -s "' .. url .. '" -o "' .. tmp .. '"'
+		local ok = os_execute(cmd)
+		blund(ok == 0, "curl download failed")
+		return tmp
+	end
+
+	local f = io_popen('curl -L -s "' .. url .. '"')
 	local src = f:read("*all")
 	f:close()
 	return src
@@ -167,11 +173,17 @@ end
 
 function system.wgetdownload(url, useLocalFile)
 	blund(os_execute("ls /usr/bin/wget > /dev/null 2>&1") == 0, "wget not installed")
-	local f = io_popen("wget -qO- \"".. url .."\"")
-	if useLocalFile == true then return f end
-	
+	if useLocalFile == true then
+		local tmp = os.tmpname()
+		local cmd = 'wget -q -O "' .. tmp .. '" "' .. url .. '"'
+		local ok = os_execute(cmd)
+		blund(ok == 0, "wget download failed")
+		return tmp
+	end
+
+	local f = io_popen('wget -qO- "' .. url .. '"')
 	local src = f:read("*all")
-	f:close(f)
+	f:close()
 	return src
 end
 

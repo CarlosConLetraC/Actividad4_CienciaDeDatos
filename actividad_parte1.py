@@ -231,4 +231,4 @@ if df["rmse_test"].notna().any():
     print("\nPeor Worker:")
     print(worst[["worker_id", "r2_test", "rmse_test"]])
 
-print(f"\nGráficas guardadas en: {OUT_DIR}")
+print(f"\nGraficas guardadas en: {OUT_DIR}")
