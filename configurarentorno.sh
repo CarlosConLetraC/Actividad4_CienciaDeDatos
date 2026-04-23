@@ -179,15 +179,12 @@ prettyprint 0 "Configurando entorno Python. . ."
 
 VENV_PATH="$BASE_PATH/entorno"
 
-# Evitar problemas con /tmp (muy importante en Debian/Ubuntu)
 export TMPDIR="$BASE_PATH/.tmp"
 mkdir -p "$TMPDIR"
 
-# Asegurar que dpkg termino (evita race conditions con python3-venv)
 prettyprint 0 "Asegurando estado consistente de dpkg. . ."
 sudo dpkg --configure -a
 
-# --- Validar entorno existente ---
 if [ -d "$VENV_PATH" ]; then
     prettyprint 1 "Entorno ya existe, verificando integridad. . ."
 
@@ -197,7 +194,6 @@ if [ -d "$VENV_PATH" ]; then
     fi
 fi
 
-# --- Crear entorno si no existe ---
 if [ ! -d "$VENV_PATH" ]; then
     prettyprint 0 "Creando entorno virtual. . ."
 
