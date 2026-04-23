@@ -129,7 +129,7 @@ else
 
 		name=$(basename "$src" .c)
 		out="$OUT_DIR/$name.so"
-		prettyprint 0 "Compilando $name..."
+		prettyprint 0 "Compilando $name. . ."
 		gcc -O3 -fPIC \
 			-I/usr/include/luajit-2.1 \
 			-shared "$src" \
@@ -154,7 +154,7 @@ if [ -d "$CPPLIBS_DIR" ]; then
 		name=$(basename "$src" .cpp)
 		out="$OUT_DIR/$name.so"
 
-		prettyprint 0 "Compilando $name (C++)..."
+		prettyprint 0 "Compilando $name (C++). . ."
 
 		g++ -O3 -fPIC \
 			-I/usr/include/luajit-2.1 \
@@ -178,18 +178,40 @@ fi
 prettyprint 0 "Configurando entorno Python. . ."
 VENV_PATH="$BASE_PATH/entorno"
 
-if [ ! -d "$VENV_PATH" ]; then
-	prettyprint 0 "Creando entorno virtual..."
-	python3 -m venv "$VENV_PATH"
+if [ -d "$VENV_PATH" ]; then
+    prettyprint 1 "Entorno ya existe, verificando integridad. . ."
+    if [ ! -f "$VENV_PATH/bin/python" ]; then
+        prettyprint 1 "Entorno corrupto, recreando. . ."
+        rm -rf "$VENV_PATH"
+    fi
 fi
 
-prettyprint 0 "Asegurando que pip exista..."
+if [ ! -d "$VENV_PATH" ]; then
+    prettyprint 0 "Creando entorno virtual. . ."
+
+    for i in {1..3}; do
+        if python3 -m venv "$VENV_PATH"; then
+            break
+        else
+            prettyprint 1 "Fallo creando venv (intento $i), reintentando. . ."
+            rm -rf "$VENV_PATH"
+            sleep 2
+        fi
+    done
+
+    if [ ! -f "$VENV_PATH/bin/python" ]; then
+        prettyprint 2 "No se pudo crear el entorno virtual"
+        exit 1
+    fi
+fi
+
+prettyprint 0 "Asegurando que pip exista. . ."
 "$VENV_PATH/bin/python" -m ensurepip --upgrade || true
 
-prettyprint 0 "Actualizando herramientas base..."
+prettyprint 0 "Actualizando herramientas base. . ."
 "$VENV_PATH/bin/python" -m pip install --upgrade pip setuptools wheel
 
-prettyprint 0 "Instalando dependencias Python..."
+prettyprint 0 "Instalando dependencias Python. . ."
 "$VENV_PATH/bin/python" -m pip install pymongo matplotlib pandas numpy scikit-learn umap-learn plotly dash seaborn
 
 prettyprint 0 "Instalacion completada correctamente."
