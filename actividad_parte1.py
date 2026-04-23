@@ -5,17 +5,13 @@ import math
 import pandas as pd
 import matplotlib.pyplot as plt
 
-# =====================================================
 # CONFIG
-# =====================================================
 JSON_PATTERN = "data/output_worker_*.json"
 OUT_DIR = "plots"
 
 os.makedirs(OUT_DIR, exist_ok=True)
 
-# =====================================================
 # LOAD FILES
-# =====================================================
 files = sorted(glob.glob(JSON_PATTERN))
 
 if not files:
@@ -24,9 +20,7 @@ if not files:
 
 rows = []
 
-# =====================================================
 # HELPERS
-# =====================================================
 def num(v):
     """Convierte a float o NaN"""
     try:
@@ -36,9 +30,7 @@ def num(v):
     except:
         return math.nan
 
-# =====================================================
 # READ JSON
-# =====================================================
 for file in files:
     with open(file, "r", encoding="utf-8") as f:
         data = json.load(f)
@@ -101,9 +93,7 @@ if not tmp.empty:
     plt.savefig(f"{OUT_DIR}/parte1_r2_test.png", dpi=200)
     plt.close()
 
-# =====================================================
 # GRAFICA 2 RMSE TEST
-# =====================================================
 tmp = df.dropna(subset=["rmse_test"])
 
 if not tmp.empty:
@@ -117,9 +107,7 @@ if not tmp.empty:
     plt.savefig(f"{OUT_DIR}/parte1_rmse_test.png", dpi=200)
     plt.close()
 
-# =====================================================
 # GRAFICA 3 ROWS
-# =====================================================
 tmp = df.dropna(subset=["rows_total"])
 
 if not tmp.empty:
@@ -133,9 +121,7 @@ if not tmp.empty:
     plt.savefig(f"{OUT_DIR}/parte1_rows_worker.png", dpi=200)
     plt.close()
 
-# =====================================================
 # GRAFICA 4 CORRELACIONES
-# =====================================================
 tmp = df.dropna(subset=["corr_odometer", "corr_mmr"], how="all")
 
 if not tmp.empty:
@@ -166,9 +152,7 @@ if not tmp.empty:
     plt.savefig(f"{OUT_DIR}/parte1_correlaciones.png", dpi=200)
     plt.close()
 
-# =====================================================
 # GRAFICA 5 BOXPLOT R2
-# =====================================================
 vals = df["r2_test"].dropna()
 
 if len(vals) > 0:
@@ -179,9 +163,7 @@ if len(vals) > 0:
     plt.savefig(f"{OUT_DIR}/parte1_boxplot_r2.png", dpi=200)
     plt.close()
 
-# =====================================================
 # GRAFICA 6 REAL VS PRED
-# =====================================================
 reales = []
 preds = []
 
@@ -215,9 +197,7 @@ if reales:
     plt.savefig(f"{OUT_DIR}/parte1_real_vs_pred.png", dpi=250)
     plt.close()
 
-# =====================================================
 # RESUMEN
-# =====================================================
 print("\n===== RESUMEN GENERAL =====")
 print(df.describe())
 
