@@ -131,7 +131,7 @@ plt.figure(figsize=(10,6))
 corr = df.corr(numeric_only=True)
 sns.heatmap(corr, cmap="coolwarm", center=0)
 plt.title("Matriz de Correlacion")
-plt.savefig(f"{OUT_DIR}/08_correlacion.png")
+plt.savefig(f"{OUT_DIR}/parte2_08_correlacion.png")
 plt.close()
 
 # 8. SUMMARY
