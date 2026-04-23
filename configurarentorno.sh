@@ -252,7 +252,8 @@ prettyprint 0 "Instalando dependencias Python. . ."
 "$VENV_PATH/bin/python" -m pip install --upgrade pymongo matplotlib pandas numpy scikit-learn umap-learn plotly dash seaborn
 
 prettyprint 0 "Instalacion completada correctamente."
-
-cd data/
-unzip car_prices.csv.zip
-cd ..
+if [ ! -e "$BASE_PATH/data/car_prices.csv" ]; then
+	cd data/
+	unzip car_prices.csv.zip
+	cd ..
+fi
