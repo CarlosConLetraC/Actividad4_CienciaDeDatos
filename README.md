@@ -5,11 +5,6 @@ Ver documentación en `ACTIVIDAD4_parte1.md`
 
 ---
 
-ESTE PROYECTO ESTA BASADO EN OTRO PROYECTO DEL MISMO AUTOR:  
-https://github.com/CarlosConLetraC/Moduler/
-
-A CONTINUACIÓN SE DOCUMENTA LA VERSIÓN ACTUALIZADA DEL SISTEMA.
-
 # Moduler
 
 Moduler es un motor de ejecución concurrente de scripts LuaJIT con

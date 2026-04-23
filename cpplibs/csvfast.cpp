@@ -271,8 +271,7 @@ static int l_save_columns(lua_State* L) {
 	while (lua_next(L, 1)) {
 		if (lua_type(L, -2) == LUA_TSTRING) {
 			std::string key = lua_tostring(L, -2);
-			if (key != "_ptr")
-				headers.push_back(key);
+			if (key != "_ptr") headers.push_back(key);
 		}
 		lua_pop(L, 1);
 	}
