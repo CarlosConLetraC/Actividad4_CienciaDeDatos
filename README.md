@@ -30,9 +30,12 @@ El sistema está dividido en tres capas principales:
 
 El backend es el núcleo del sistema.
 
-Responsabilidades: - Scheduler con colas (pending, priority, retry) -
-ThreadPool interno - Dispatcher event-driven - Sistema de retries con
-backoff - Ejecución de LuaJIT por proceso aislado
+Responsabilidades:
+  - Scheduler con colas (pending, priority, retry)
+  - ThreadPool interno
+  - Dispatcher event-driven
+  - Sistema de retries con backoff
+  - Ejecución de LuaJIT por proceso aislado
 
 ## ThreadPool (C++)
 
