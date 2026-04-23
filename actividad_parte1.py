@@ -62,9 +62,7 @@ for file in files:
 
     rows.append(row)
 
-# =====================================================
 # DATAFRAME
-# =====================================================
 df = pd.DataFrame(rows)
 
 if df.empty:
@@ -77,9 +75,7 @@ df.replace([math.inf, -math.inf], math.nan, inplace=True)
 # guardar csv
 df.to_csv(f"{OUT_DIR}/resumen_workers.csv", index=False)
 
-# =====================================================
 # GRAFICA 1 R2 TEST
-# =====================================================
 tmp = df.dropna(subset=["r2_test"])
 
 if not tmp.empty:
