@@ -1,4 +1,4 @@
-# Actividad 4 (Parte 1) — Procesamiento Distribuido y Regresión Lineal sobre Dataset de Vehículos
+# Actividad 4 (Parte 1) --- Procesamiento Distribuido y Regresión Lineal sobre Dataset de Vehículos
 
 ## Resumen Ejecutivo
 
