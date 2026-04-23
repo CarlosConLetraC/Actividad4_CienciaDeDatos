@@ -41,7 +41,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	out:write("sellingprice,odometer,mmr\n")
 
 	-- DATASET
-	local dataset = {}
+	local dataset    = {}
 	local price_list = {}
 	local odo_list   = {}
 	local mmr_list   = {}
