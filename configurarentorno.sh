@@ -213,7 +213,6 @@ if [ ! -d "$VENV_PATH" ]; then
     fi
 fi
 
-# --- Verificar pip ---
 prettyprint 0 "Verificando pip dentro del entorno. . ."
 
 if ! "$VENV_PATH/bin/python" -m pip --version > /dev/null 2>&1; then
