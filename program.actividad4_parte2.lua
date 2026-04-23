@@ -8,7 +8,7 @@ local file_name = system.curldownload("https://www.openml.org/data/get_csv/16826
 local data = csv.read_columns(file_name)
 blund(data, "no se pudo cargar dataset")
 
--- BUILD DATASET (MEMORY ONLY)
+-- BUILD DATASET (EN MEMORIA)
 local dataset = {}
 local rows = #data.survived
 
@@ -23,10 +23,8 @@ for i = 1, rows, 1 do
 
     -- filtro minimo NaN-safe
     if age == age and fare == fare and pcls == pcls and surv == surv then
-
         local family_size = sibsp + parch + 1
         local is_alone = (family_size == 1) and 1 or 0
-
         --[[dataset[#dataset + 1] =]]
         table.insert(dataset, {
             sex = (sex == "female") and 1 or 0,
@@ -76,7 +74,7 @@ print("Test Loss      :", result.test.loss)
 -- CORRELATIONS
 local fare_list, age_list, surv_list = {}, {}, {}
 
-for i = 1, #dataset do
+for i = 1, #dataset, 1 do
     local r = dataset[i]
     fare_list[i] = r.fare
     age_list[i]  = r.age

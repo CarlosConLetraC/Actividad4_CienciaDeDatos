@@ -66,7 +66,7 @@ El sistema usa **Moduler**, una arquitectura tipo scheduler/worker que ejecuta s
 
 ## Flujo General
 
-Dataset CSV → Particionado Automático → 10 Workers Paralelos → Entrenamiento Independiente → JSON por Worker → Consolidación Python → Reporte Final
+Dataset CSV => Particionado Automático => 10 Workers Paralelos => Entrenamiento Independiente => JSON por Worker => Consolidación Python => Reporte Final
 
 ---
 
@@ -175,12 +175,12 @@ Se ejecutaron **10 workers concurrentes**, cada uno procesando aproximadamente *
 # Mejor Worker
 
 - Worker 10
-- R² Test = 0.983395
+- R² Test = 0.978163
 
 # Peor Worker
 
-- Worker 25
-- R² Test = 0.833479
+- Worker 8
+- R² Test = 0.950991
 
 ---
 
