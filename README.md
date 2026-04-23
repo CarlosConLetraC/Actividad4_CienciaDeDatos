@@ -46,8 +46,11 @@ Responsabilidades:
 
 ## Worker (LuaJIT)
 
-Cada job ejecuta scripts LuaJIT aislados: - procesamiento de datos -
-generación de métricas - exportación JSON - pipelines de ML
+Cada job ejecuta scripts LuaJIT aislados:
+  - procesamiento de datos
+  - generación de métricas
+  - exportación JSON
+  - pipelines de ML
 
 ------------------------------------------------------------------------
 
@@ -64,9 +67,12 @@ generación de métricas - exportación JSON - pipelines de ML
 
 # Actividad 4 - Ciencia de Datos
 
-Cada worker: - carga dataset - filtra datos inválidos - entrena modelo
-de regresión logística - calcula métricas (R2, MSE, RMSE, accuracy) -
-exporta resultados en JSON
+Cada worker:
+  - carga dataset
+  - filtra datos inválidos
+  - entrena modelo de regresión logística
+  - calcula métricas (R2, MSE, RMSE, accuracy)
+  - exporta resultados en JSON
 
 Posteriormente se analizan en Python.
 
