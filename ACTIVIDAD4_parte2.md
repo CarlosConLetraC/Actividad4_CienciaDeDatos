@@ -2,9 +2,17 @@
 
 ## Resumen Ejecutivo
 
-Se desarrolló un modelo de regresión logística binaria para predecir la
-sobrevivencia de pasajeros del Titanic utilizando un pipeline eficiente
-basado en LuaJIT + C/C++ para entrenamiento y Python para visualización.
+En esta actividad se implementó un modelo de regresión logística binaria
+para predecir la sobrevivencia en el Titanic. A diferencia de enfoques
+tradicionales, el dataset **no es procesado en Python**, sino que es:
+
+-   Descargado dinámicamente
+-   Limpiado y tipado en C++
+-   Procesado en memoria en LuaJIT
+-   Modelado con un motor en C++
+
+Python únicamente se utiliza para visualización a partir de los
+coeficientes exportados.
 
 ------------------------------------------------------------------------
 
@@ -12,14 +20,12 @@ basado en LuaJIT + C/C++ para entrenamiento y Python para visualización.
 
 ## Objetivo General
 
-Predecir la sobrevivencia de pasajeros usando variables demográficas y
-socioeconómicas.
+Predecir la sobrevivencia de pasajeros del Titanic.
 
 ## Objetivos Específicos
 
--   Limpieza de datos
--   Transformación de variables
--   Análisis exploratorio
+-   Limpieza robusta de datos
+-   Feature engineering
 -   Entrenamiento de modelo
 -   Interpretación de coeficientes
 
@@ -48,39 +54,20 @@ Dataset limpio final: **1045 registros**
 
 ------------------------------------------------------------------------
 
-# Limpieza y Preparación
+# Pipeline
 
--   Eliminación de valores nulos
--   Codificación binaria de variables categóricas
--   Creación de:
-    -   family_size
-    -   is_alone
+C++ (csvfast) → Limpieza → LuaJIT → Modelo (cml) → JSON → Python
 
 ------------------------------------------------------------------------
 
-# Análisis Exploratorio
+# Limpieza de Datos
 
-## Correlaciones
+Realizada en C++:
 
--   fare vs survived: 0.2491 (positiva)
--   age vs survived: -0.0539 (ligera negativa)
-
-------------------------------------------------------------------------
-
-# División de Datos
-
--   80% entrenamiento
--   20% prueba
-
-------------------------------------------------------------------------
-
-# Modelo
-
-Regresión Logística Binaria:
-
-P(survived) = σ(β0 + Σ βiXi)
-
-Parámetros: - Learning rate: 0.05 - Iteraciones: 3000
+-   Eliminación de valores inválidos (NA, NULL, ?, etc.)
+-   Manejo de NaN
+-   Detección automática de columnas numéricas (\>85%)
+-   Limpieza de strings (UTF-8, espacios, comillas)
 
 ------------------------------------------------------------------------
 
@@ -88,12 +75,17 @@ Parámetros: - Learning rate: 0.05 - Iteraciones: 3000
 
 ## Métricas
 
-  Métrica          Valor
-  ---------------- --------
-  Train Accuracy   0.8002
-  Test Accuracy    0.7799
-  Train Loss       0.1997
-  Test Loss        0.2200
+-   Train Accuracy: 0.8002
+-   Test Accuracy: 0.7799
+-   Train Loss: 0.1997
+-   Test Loss: 0.2200
+
+------------------------------------------------------------------------
+
+# Correlaciones
+
+-   fare vs survived: 0.2491
+-   age vs survived: -0.0539
 
 ------------------------------------------------------------------------
 
@@ -114,71 +106,17 @@ Bias: -0.4143
 
 ------------------------------------------------------------------------
 
-# Odds Ratios
-
-Interpretación usando exp(β):
-
--   sex → aumenta fuertemente probabilidad
--   pclass → reduce probabilidad
--   age → efecto negativo moderado
-
-------------------------------------------------------------------------
-
 # Interpretación
 
--   Ser mujer incrementa significativamente la sobrevivencia
--   Clases altas tienen mayor probabilidad
--   Mayor tarifa mejora supervivencia
+-   Ser mujer aumenta significativamente la sobrevivencia
+-   Mayor clase social incrementa probabilidad
+-   Mayor tarifa mejora sobrevivencia
 -   Viajar solo reduce probabilidad
-
-------------------------------------------------------------------------
-
-# Ejemplo
-
--   Valor real: 1
--   Predicción: 0
--   Probabilidad: 0.1146
-
-------------------------------------------------------------------------
-
-# Visualización
-
-Gráficas generadas: - Supervivencia por sexo - Distribución de
-probabilidades - Importancia de variables - Odds ratios
-
-Ubicación: /plots
-
-------------------------------------------------------------------------
-
-# Arquitectura
-
-Pipeline:
-
-LuaJIT + C/C++ → entrenamiento → JSON → Python → gráficas
-
-------------------------------------------------------------------------
-
-# Limitaciones
-
--   Sin validación cruzada
--   Sin regularización
--   t-test no implementado explícitamente
-
-------------------------------------------------------------------------
-
-# Mejoras Futuras
-
--   Ridge / Lasso
--   Random Forest
--   Gradient Boosting
--   Redes neuronales
 
 ------------------------------------------------------------------------
 
 # Conclusión
 
-El modelo logra una precisión cercana al 78% en test, identificando
-correctamente variables clave como sexo, clase y tarifa.
-
-Se demuestra la eficiencia de integrar LuaJIT con C/C++ para machine
-learning y Python para análisis.
+El modelo logra \~78% de accuracy en test. Se demuestra que un pipeline
+basado en C++ + LuaJIT puede ser altamente eficiente para machine
+learning sin depender de frameworks pesados.

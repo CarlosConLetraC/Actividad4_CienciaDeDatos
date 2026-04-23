@@ -9,7 +9,7 @@ OUT_DIR = "plots"
 os.makedirs(OUT_DIR, exist_ok=True)
 sns.set(style="whitegrid")
 
-# 1. LOAD MODEL ONLY (NO CSV)
+# 1. LOAD MODEL ONLY
 with open("data/coeficientes.json", "r") as f:
     model = json.load(f)
 
@@ -53,7 +53,7 @@ pred = (proba > 0.5).astype(int)
 # 4. ANALYTICS DATAFRAME-LIKE
 sex = X.get("sex", np.zeros(N))
 
-# 5. VISUALIZATIONS (NO CSV NEEDED)
+# 5. VISUALIZATIONS
 
 # Survival rate by sex
 plt.figure(figsize=(6,4))

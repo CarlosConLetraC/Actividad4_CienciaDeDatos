@@ -14,7 +14,7 @@ local rows = #data.survived
 
 for i = 1, rows, 1 do
     local sex   = data.sex[i]
-    local age   = tonumber(data.age[i]) or 0/0
+    local age   = tonumber(data.age[i]) or math.huge/math.huge
     local fare  = data.fare[i]
     local pcls  = data.pclass[i]
     local sibsp = data.sibsp[i]
