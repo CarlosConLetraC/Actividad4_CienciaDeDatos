@@ -107,10 +107,9 @@ Este sistema es concurrente local, no distribuido en red.
 
 # Instalación
 ```bash
-git clone --recursive
-https://github.com/CarlosConLetraC/Actividad4_CienciaDeDatos.git\
-cd Actividad4_CienciaDeDatos\
-chmod +x initconsole cmd runclient \*.sh
+git clone --recursive https://github.com/CarlosConLetraC/Actividad4_CienciaDeDatos.git
+cd Actividad4_CienciaDeDatos
+chmod +x initconsole cmd runclient *.sh
 ```
 
 ------------------------------------------------------------------------
