@@ -176,20 +176,32 @@ else
 fi
 
 prettyprint 0 "Configurando entorno Python. . ."
+
 VENV_PATH="$BASE_PATH/entorno"
 
+# Evitar problemas con /tmp (muy importante en Debian/Ubuntu)
+export TMPDIR="$BASE_PATH/.tmp"
+mkdir -p "$TMPDIR"
+
+# Asegurar que dpkg termino (evita race conditions con python3-venv)
+prettyprint 0 "Asegurando estado consistente de dpkg. . ."
+sudo dpkg --configure -a
+
+# --- Validar entorno existente ---
 if [ -d "$VENV_PATH" ]; then
     prettyprint 1 "Entorno ya existe, verificando integridad. . ."
+
     if [ ! -f "$VENV_PATH/bin/python" ]; then
-        prettyprint 1 "Entorno corrupto, recreando. . ."
+        prettyprint 1 "Entorno corrupto (sin python), recreando. . ."
         rm -rf "$VENV_PATH"
     fi
 fi
 
+# --- Crear entorno si no existe ---
 if [ ! -d "$VENV_PATH" ]; then
     prettyprint 0 "Creando entorno virtual. . ."
 
-    for i in {1..3}; do
+    for i in 1 2 3; do
         if python3 -m venv "$VENV_PATH"; then
             break
         else
@@ -205,13 +217,38 @@ if [ ! -d "$VENV_PATH" ]; then
     fi
 fi
 
-prettyprint 0 "Asegurando que pip exista. . ."
-"$VENV_PATH/bin/python" -m ensurepip --upgrade || true
+# --- Verificar pip ---
+prettyprint 0 "Verificando pip dentro del entorno. . ."
+
+if ! "$VENV_PATH/bin/python" -m pip --version > /dev/null 2>&1; then
+    prettyprint 1 "pip no esta disponible, recreando entorno. . ."
+    rm -rf "$VENV_PATH"
+    for i in 1 2 3; do
+        if python3 -m venv "$VENV_PATH"; then
+            if "$VENV_PATH/bin/python" -m pip --version > /dev/null 2>&1; then
+                break
+            fi
+        fi
+        prettyprint 1 "pip sigue sin existir (intento $i), reintentando. . ."
+        rm -rf "$VENV_PATH"
+        sleep 2
+    done
+
+    if ! "$VENV_PATH/bin/python" -m pip --version > /dev/null 2>&1; then
+        prettyprint 2 "No se pudo crear un entorno con pip funcional"
+        exit 1
+    fi
+fi
 
 prettyprint 0 "Actualizando herramientas base. . ."
+
 "$VENV_PATH/bin/python" -m pip install --upgrade pip setuptools wheel
+if ! "$VENV_PATH/bin/python" -m pip --version > /dev/null 2>&1; then
+    prettyprint 2 "pip quedo en estado invalido despues del upgrade"
+    exit 1
+fi
 
 prettyprint 0 "Instalando dependencias Python. . ."
-"$VENV_PATH/bin/python" -m pip install pymongo matplotlib pandas numpy scikit-learn umap-learn plotly dash seaborn
+"$VENV_PATH/bin/python" -m pip install --upgrade pymongo matplotlib pandas numpy scikit-learn umap-learn plotly dash seaborn
 
 prettyprint 0 "Instalacion completada correctamente."
