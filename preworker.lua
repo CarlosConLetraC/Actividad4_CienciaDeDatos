@@ -17,7 +17,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	local odoCol   = columns.odometer
 	local mmrCol   = columns.mmr
 
-	assert(priceCol and odoCol and mmrCol, "faltan columnas")
+	blund(priceCol and odoCol and mmrCol, "faltan columnas")
 	local totalRows = #priceCol
 
 	-- SHARDING
@@ -37,7 +37,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 	-- OUTPUT CSV
 	local outputCSV = string_format("%s%d.csv", outputPrefix, workerId)
-	local out = assert(io.open(outputCSV, "w"))
+	local out = blund(io.open(outputCSV, "w"))
 	out:write("sellingprice,odometer,mmr\n")
 
 	-- DATASET
@@ -167,7 +167,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	}
 
 	local jsonPath = string_format("data/output_worker_%d.json", workerId)
-	local f = assert(io.open(jsonPath, "w"))
+	local f = blund(io.open(jsonPath, "w"))
 	f:write(json.encode(salida))
 	f:close()
 	system.print("[Worker " .. workerId .. "] JSON guardado")
