@@ -1,3 +1,5 @@
+# se recomienda agregar estas funciones a su .bashrc
+
 podmanbuild() {
     if [ -z "$1" ]; then
         echo "Uso: podmanbuild <dockerfile> [tag]"

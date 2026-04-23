@@ -234,7 +234,7 @@ static int l_read_columns(lua_State* L) {
 			const auto& col = t->num_cols[c];
 			for (size_t i = 0; i < (size_t)col.size(); i++) {
 				if (std::isnan(col[i])) {
-					lua_pushnumber(L, NAN);   // IMPORTANTISIMO para pandas
+					lua_pushnumber(L, NAN);   // IMPORTANTISIMO para pandas. . .
 				} else {
 					lua_pushnumber(L, col[i]);
 				}
