@@ -100,7 +100,7 @@ if [ ! -f "$BASE_PATH/import/Linux/ssh.so" ]; then
 	prettyprint 0 "Compilando lua-ssh. . ."
 
 	cd /tmp
-	rm -rf /tmp/lua-ssh
+	rm -rf lua-ssh
 	git clone https://github.com/esno/lua-ssh.git
 	cd lua-ssh/src
 
@@ -110,7 +110,8 @@ if [ ! -f "$BASE_PATH/import/Linux/ssh.so" ]; then
 	mkdir -p "$BASE_PATH/import/Linux/"
 	cp ssh.so "$BASE_PATH/import/Linux/"
 
-	rm -rf /tmp/lua-ssh
+	cd /tmp
+	rm -rf lua-ssh
 fi
 
 prettyprint 0 "Compilando clibs/*.c . . ."
