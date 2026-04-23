@@ -182,6 +182,8 @@ Se ejecutaron **10 workers concurrentes**, cada uno procesando aproximadamente *
 - Worker 8
 - R² Test = 0.950991
 
+
+Esto es a nivel conceptual. Puede variar debido al shuffle que se hace en LuaJIT.
 ---
 
 # Mejoras Futuras

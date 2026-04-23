@@ -9,7 +9,6 @@ local table_insert = table.insert
 
 -- START
 local function start(workerId, totalWorkers, inputCSV, outputPrefix)
-
 	workerId = tonumber(workerId)
 	totalWorkers = tonumber(totalWorkers)
 
@@ -35,37 +34,29 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 		start_row = (workerId - 1) * limit + 1
 	else
 		limit = base
-		start_row = extra * (base + 1)
-			+ (workerId - extra - 1) * base + 1
+		start_row = extra * (base + 1) + (workerId - extra - 1) * base + 1
 	end
 
 	local end_row = start_row + limit - 1
 
 	-- OUTPUT CSV
 	local outputCSV = string_format("%s%d.csv", outputPrefix, workerId)
-
 	local out = assert(io.open(outputCSV, "w"))
 	out:write("sellingprice,odometer,mmr\n")
 
 	-- DATASET
 	local dataset = {}
-
 	local price_list = {}
 	local odo_list   = {}
 	local mmr_list   = {}
 
-	for i = start_row, end_row do
-
+	for i = start_row, end_row, 1 do
 		local price = priceCol[i]
 		local odom  = odoCol[i]
 		local mmr   = mmrCol[i]
 
 		if price and odom and mmr then
-
-			out:write(
-				string_format("%f,%f,%f\n", price, odom, mmr)
-			)
-
+			out:write(string_format("%f,%f,%f\n", price, odom, mmr))
 			table_insert(dataset, {
 				Odometer = odom,
 				MMR = mmr,
@@ -88,9 +79,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	))
 
 	if #dataset < 10 then
-		system.print(
-			"[Worker " .. workerId .. "] dataset demasiado pequeño"
-		)
+		system.print("[Worker " .. workerId .. "] dataset demasiado pequeño")
 		return
 	end
 
