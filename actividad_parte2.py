@@ -72,14 +72,14 @@ sex = X.get("sex", np.zeros(N))
 plt.figure(figsize=(6,4))
 plt.bar(["Hombre", "Mujer"], [pred[sex==0].mean(), pred[sex==1].mean()])
 plt.title("Supervivencia simulada por sexo")
-plt.savefig(f"{OUT_DIR}/01_sex.png")
+plt.savefig(f"{OUT_DIR}/parte2_01_sex.png")
 plt.close()
 
 # Distribucion de probabilidades
 plt.figure(figsize=(7,4))
 plt.hist(proba, bins=30, alpha=0.7)
 plt.title("Distribucion de probabilidades del modelo")
-plt.savefig(f"{OUT_DIR}/02_proba.png")
+plt.savefig(f"{OUT_DIR}/parte2_02_proba.png")
 plt.close()
 
 # Feature importance
@@ -87,7 +87,7 @@ plt.figure(figsize=(8,4))
 sns.barplot(x=features, y=weights)
 plt.xticks(rotation=35)
 plt.title("Importancia de features")
-plt.savefig(f"{OUT_DIR}/03_weights.png")
+plt.savefig(f"{OUT_DIR}/parte2_03_weights.png")
 plt.close()
 
 # Odds ratios
@@ -95,7 +95,7 @@ plt.figure(figsize=(8,4))
 sns.barplot(x=features, y=np.exp(weights))
 plt.xticks(rotation=35)
 plt.title("Odds ratios")
-plt.savefig(f"{OUT_DIR}/04_odds.png")
+plt.savefig(f"{OUT_DIR}/parte2_04_odds.png")
 plt.close()
 
 # 7. NUEVAS GRAFICAS
@@ -107,14 +107,14 @@ plt.axhline(0, linestyle='--')
 plt.xlabel("Valores ajustados (proba)")
 plt.ylabel("Residuos")
 plt.title("Residuos vs Valores Ajustados")
-plt.savefig(f"{OUT_DIR}/05_residuos_vs_ajustados.png")
+plt.savefig(f"{OUT_DIR}/parte2_05_residuos_vs_ajustados.png")
 plt.close()
 
 # Q-Q plot
 plt.figure(figsize=(6,4))
 stats.probplot(residuos, dist="norm", plot=plt)
 plt.title("Q-Q Plot de Residuos")
-plt.savefig(f"{OUT_DIR}/06_qqplot.png")
+plt.savefig(f"{OUT_DIR}/parte2_06_qqplot.png")
 plt.close()
 
 # Histograma de residuos
@@ -123,7 +123,7 @@ plt.hist(residuos, bins=30, alpha=0.7)
 plt.xlabel("Residuos")
 plt.ylabel("Frecuencia")
 plt.title("Histograma de Residuos")
-plt.savefig(f"{OUT_DIR}/07_hist_residuos.png")
+plt.savefig(f"{OUT_DIR}/parte2_07_hist_residuos.png")
 plt.close()
 
 # Matriz de correlacion
