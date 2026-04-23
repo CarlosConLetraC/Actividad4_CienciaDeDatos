@@ -50,17 +50,16 @@ static inline std::string clean_cr(std::string s) {
 
 static inline std::string clean_token(std::string s) {
 	s = trim(s);
-
-	// remove UTF8 BOM
+	if (s.empty()) return "";
 	if (s.size() >= 3 &&
 		(unsigned char)s[0] == 0xEF &&
 		(unsigned char)s[1] == 0xBB &&
 		(unsigned char)s[2] == 0xBF) {
 		s.erase(0, 3);
 	}
-
 	s = clean_cr(s);
-	return trim(s);
+	s = trim(s);
+	return s;
 }
 
 static inline std::string to_upper(std::string s) {
@@ -84,70 +83,38 @@ static inline bool is_invalid(const std::string& s) {
 		v == "NULL"
 	);
 }
-static inline bool is_invalid_raw(const std::string& v) {
-    std::string u = to_upper(v);
-    return (
-        u.empty() ||
-        u == "?" ||
-        u == "NA" ||
-        u == "N/A" ||
-        u == "NULL"
-    );
-}
-static inline bool is_missing(const std::string& s) {
-    std::string u = to_upper(clean_token(s));
-
-    return (
-        u.empty() ||
-        u == "?" ||
-        u == "NA" ||
-        u == "N/A" ||
-        u == "NULL"
-    );
-}
-static inline bool is_missing_string(const std::string& s) {
-    std::string u = to_upper(clean_token(s));
-
-    return (
-        u.empty() ||
-        u == "?" ||
-        u == "NA" ||
-        u == "N/A" ||
-        u == "NULL"
-    );
-}
 
 static inline bool to_number(const std::string& s, double& out) {
-    std::string v = clean_token(s);
-    if (is_missing(v)) return false;
+	std::string v = clean_token(s);
+	if (is_invalid(v)) return false;
 
-    char* end = NULL;
-    out = std::strtod(v.c_str(), &end);
+	char* end = NULL;
+	out = std::strtod(v.c_str(), &end);
 
-    if (end == v.c_str()) return false;
-    while (*end && std::isspace((unsigned char)*end)) end++;
+	if (end == v.c_str()) return false;
+	while (*end && std::isspace((unsigned char)*end)) end++;
 
-    return (*end == '\0');
+	return (*end == '\0');
 }
 
 static inline std::string sanitize(const std::string& s) {
-    std::string v = clean_token(s);
-    if (is_missing(v)) return "";
+	std::string v = clean_token(s);
+	if (is_invalid(v)) return "";
 
-    std::string out;
-    bool space = false;
+	std::string out;
+	bool space = false;
 
-    for (char c : v) {
-        if (std::isspace((unsigned char)c)) {
-            if (!space) out.push_back(' ');
-            space = true;
-        } else {
-            out.push_back(c);
-            space = false;
-        }
-    }
+	for (char c : v) {
+		if (std::isspace((unsigned char)c)) {
+			if (!space) out.push_back(' ');
+			space = true;
+		} else {
+			out.push_back(c);
+			space = false;
+		}
+	}
 
-    return out;
+	return out;
 }
 
 // STRUCT
@@ -221,14 +188,12 @@ static int l_read_columns(lua_State* L) {
 
 	while (std::getline(file, line)) {
 		line = clean_cr(line);
-
-		if (!trim(line).empty())
-			raw.push_back(split_line(line));
+		if (!trim(line).empty()) raw.push_back(split_line(line));
 	}
 
 	t->rows = (int)raw.size();
 
-	// detectar columnas numéricas
+	// detectar columnas numericas
 	std::vector<int> ok(t->cols, 0);
 	std::vector<int> total(t->cols, 0);
 
@@ -240,10 +205,7 @@ static int l_read_columns(lua_State* L) {
 			if (to_number(v, tmp)) ok[c]++;
 		}
 	}
-
-	for (int c = 0; c < t->cols; c++) {
-		t->is_numeric[c] = (total[c] > 0 && ok[c] > total[c] * 0.85);
-	}
+	for (int c = 0; c < t->cols; c++) t->is_numeric[c] = (total[c] > 0 && ok[c] > total[c] * 0.85);
 
 	// construir columnas finales
 	for (int c = 0; c < t->cols; c++) {
@@ -299,19 +261,19 @@ static int l_read_columns(lua_State* L) {
 static int l_save_columns(lua_State* L) {
 	luaL_checktype(L, 1, LUA_TTABLE);
 	const char* path = luaL_checkstring(L, 2);
+
 	std::ofstream out(path);
 	if (!out.is_open()) return luaL_error(L, "cannot open output file");
-
 	std::vector<std::string> headers;
 
-	// recolectar columnas
+	// collect headers
 	lua_pushnil(L);
 	while (lua_next(L, 1)) {
 		if (lua_type(L, -2) == LUA_TSTRING) {
 			std::string key = lua_tostring(L, -2);
-			if (key != "_ptr") headers.push_back(key);
+			if (key != "_ptr")
+				headers.push_back(key);
 		}
-
 		lua_pop(L, 1);
 	}
 
@@ -326,7 +288,8 @@ static int l_save_columns(lua_State* L) {
 		out << headers[i];
 	}
 	out << "\n";
-	// detectar filas maximas
+
+	// ROW COUNT
 	int rows = 0;
 
 	for (size_t i = 0; i < headers.size(); i++) {
@@ -340,21 +303,29 @@ static int l_save_columns(lua_State* L) {
 	for (int r = 1; r <= rows; r++) {
 		for (size_t c = 0; c < headers.size(); c++) {
 			if (c) out << ",";
+
 			lua_getfield(L, 1, headers[c].c_str());
 			lua_rawgeti(L, -1, r);
+
 			int t = lua_type(L, -1);
+
+			// NUMBER
 			if (t == LUA_TNUMBER) {
 				double v = lua_tonumber(L, -1);
-				// NaN / inf => vacio
-				if (std::isfinite(v)) out << v;
-			} 
+				if (std::isfinite(v) && !std::isnan(v)) out << v;
+			}
+
+			// STRING
 			else if (t == LUA_TSTRING) {
+
 				std::string s = lua_tostring(L, -1);
-				if (is_missing_string(s)) {
-					out << "";
-				} else {
+
+				if (!is_invalid(s)) {
 					s = sanitize(s);
-					bool quote = (s.find(',') != std::string::npos || s.find('"') != std::string::npos);
+					bool quote =
+						(s.find(',') != std::string::npos ||
+						 s.find('"') != std::string::npos);
+
 					if (quote) {
 						out << "\"";
 						for (char ch : s) {
@@ -522,20 +493,113 @@ static int l_each(lua_State* L) {
 
 			lua_setfield(L, -2, h.c_str());
 		}
-
 		emitted++;
-
 		lua_pushinteger(L, emitted);
 		lua_pushinteger(L, i);
-
 		lua_call(L, 3, 0);
-
-		if (emitted >= limit)
-			break;
+		if (emitted >= limit) break;
 	}
 
 	file.close();
 	return 0;
+}
+
+static int l_export_rows(lua_State* L) {
+	luaL_checktype(L, 1, LUA_TTABLE);
+	const char* path = luaL_checkstring(L, 2);
+
+	std::ofstream out(path);
+	if (!out.is_open()) return luaL_error(L, "cannot open output file");
+
+	int row_count = (int)lua_rawlen(L, 1);
+	if (row_count == 0) return luaL_error(L, "dataset vacío");
+
+	// 1. HEADERS desde fila 1 (orden estable + completo)
+	lua_rawgeti(L, 1, 1);
+	if (!lua_istable(L, -1)) {
+		lua_pop(L, 1);
+		return luaL_error(L, "row[1] inválida");
+	}
+	std::vector<std::string> headers;
+	lua_pushnil(L);
+	while (lua_next(L, -2)) {
+		if (lua_type(L, -2) == LUA_TSTRING) {
+			headers.push_back(lua_tostring(L, -2));
+		}
+		lua_pop(L, 1);
+	}
+	lua_pop(L, 1);
+	if (headers.empty()) return luaL_error(L, "no headers encontrados");
+
+	// 2. CSV HEADER
+	for (size_t i = 0; i < headers.size(); i++) {
+		if (i) out << ",";
+		out << headers[i];
+	}
+	out << "\n";
+
+	// 3. ROWS
+	for (int i = 1; i <= row_count; i++) {
+
+		lua_rawgeti(L, 1, i);
+
+		if (!lua_istable(L, -1)) {
+			lua_pop(L, 1);
+			continue;
+		}
+
+		for (size_t c = 0; c < headers.size(); c++) {
+			if (c) out << ",";
+
+			lua_getfield(L, -1, headers[c].c_str());
+
+			int t = lua_type(L, -1);
+
+			if (t == LUA_TNUMBER) {
+				double v = lua_tonumber(L, -1);
+
+				if (std::isfinite(v))
+					out << v;
+				else
+					out << "NaN";
+			}
+			else if (t == LUA_TSTRING) {
+				std::string s = lua_tostring(L, -1);
+
+				if (is_invalid(s)) {
+					out << "NaN";
+				} else {
+					s = sanitize(s);
+
+					bool quote =
+						(s.find(',') != std::string::npos ||
+						s.find('"') != std::string::npos);
+
+					if (quote) {
+						out << "\"";
+						for (char ch : s) {
+							if (ch == '"') out << "\"\"";
+							else out << ch;
+						}
+						out << "\"";
+					} else {
+						out << s;
+					}
+				}
+			}
+			else {
+				// NIL u otro tipo
+				out << "NaN";
+			}
+
+			lua_pop(L, 1);
+		}
+		lua_pop(L, 1);
+		out << "\n";
+	}
+	out.close();
+	lua_pushboolean(L, 1);
+	return 1;
 }
 
 // MODULE
@@ -544,6 +608,7 @@ extern "C" {
 static const luaL_Reg funcs[] = {
 	{"read_columns", l_read_columns},
 	{"save_columns", l_save_columns},
+	{"export_rows", l_export_rows},
 	{"count_rows", l_count_rows},
 	{"each", l_each},
 	{"to_number", l_to_number},

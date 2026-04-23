@@ -1,201 +1,94 @@
-import pandas as pd
-import matplotlib.pyplot as plt
-import seaborn as sns
 import json
 import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
 import os
 
-# =====================================================
-# CONFIGURACION
-# =====================================================
+# CONFIG
 OUT_DIR = "plots"
 os.makedirs(OUT_DIR, exist_ok=True)
+sns.set(style="whitegrid")
 
-sns.set(style="whitegrid", palette="deep")
-
-# =====================================================
-# 1. CARGAR DATASET (YA LIMPIO POR C++/LUAJIT)
-# =====================================================
-df = pd.read_csv("data/titanic_clean.csv")
-
-# LABELS LEGIBLES
-df["sex_label"] = df["sex"].map({0: "Hombre", 1: "Mujer"})
-df["survived_label"] = df["survived"].map({
-    0: "No sobrevivió",
-    1: "Sobrevivió"
-})
-df["alone_label"] = df["is_alone"].map({
-    0: "Acompañado",
-    1: "Solo"
-})
-
-# =====================================================
-# 2. MODELO (cml LogisticRegression)
-# =====================================================
+# 1. LOAD MODEL ONLY (NO CSV)
 with open("data/coeficientes.json", "r") as f:
     model = json.load(f)
 
-weights = np.array(model["weights"])
 features = model["features"]
+weights  = np.array(model["weights"], dtype=float)
+bias     = model.get("bias", 0.0)
 
-# Bias puede o no existir según versión
-bias = model.get("bias", 0.0)
+# 2. SIMULATED FEATURE SPACE
+#    (reemplaza dataset real)
+np.random.seed(42)
+N = 1000
 
-odds_ratios = np.exp(weights)
+X = {}
 
-# =====================================================
-# UTILIDAD SAVE
-# =====================================================
-def saveplot(name):
-    plt.tight_layout()
-    plt.savefig(f"{OUT_DIR}/{name}", dpi=220)
-    plt.close()
+for f in features:
+    match f:
+        case "sex" | "is_alone":
+            X[f] = np.random.randint(0, 2, N)
 
-# =====================================================
-# 3. SUPERVIVENCIA POR SEXO
-# =====================================================
-plt.figure(figsize=(8, 5))
-sns.barplot(x="sex_label", y="survived", data=df)
-plt.title("Supervivencia por sexo")
-plt.xlabel("Sexo")
-plt.ylabel("Probabilidad de supervivencia")
-saveplot("01_supervivencia_sexo.png")
+        case "pclass":
+            X[f] = np.random.randint(1, 4, N)
 
-# =====================================================
-# 4. SUPERVIVENCIA POR CLASE
-# =====================================================
-plt.figure(figsize=(8, 5))
-sns.barplot(x="pclass", y="survived", data=df)
-plt.title("Supervivencia por clase")
-plt.xlabel("Clase")
-plt.ylabel("Probabilidad de supervivencia")
-saveplot("02_supervivencia_clase.png")
+        case "age":
+            X[f] = np.random.normal(30, 12, N).clip(0, 80)
 
-# =====================================================
-# 5. EDAD VS SUPERVIVENCIA
-# =====================================================
-plt.figure(figsize=(10, 6))
-sns.histplot(
-    data=df,
-    x="age",
-    hue="survived_label",
-    bins=30,
-    kde=True,
-    alpha=0.55,
-    multiple="layer"
-)
-plt.title("Distribución de edad vs supervivencia")
-plt.xlabel("Edad")
-plt.ylabel("Frecuencia")
-saveplot("03_edad_general.png")
+        case "fare":
+            X[f] = np.random.gamma(2, 20, N)
 
-# =====================================================
-# 6. HOMBRES
-# =====================================================
-plt.figure(figsize=(10, 6))
-sns.histplot(
-    data=df[df["sex"] == 0],
-    x="age",
-    hue="survived_label",
-    bins=30,
-    kde=True,
-    alpha=0.55
-)
-plt.title("Edad vs supervivencia (Hombres)")
-saveplot("04_edad_hombres.png")
+        case _:
+            X[f] = np.random.normal(0, 1, N)
 
-# =====================================================
-# 7. MUJERES
-# =====================================================
-plt.figure(figsize=(10, 6))
-sns.histplot(
-    data=df[df["sex"] == 1],
-    x="age",
-    hue="survived_label",
-    bins=30,
-    kde=True,
-    alpha=0.55
-)
-plt.title("Edad vs supervivencia (Mujeres)")
-saveplot("05_edad_mujeres.png")
+# 3. LOGISTIC MODEL SIMULATION
+def sigmoid(z): return 1 / (1 + np.exp(-z))
 
-# =====================================================
-# 8. BOXPLOT EDAD
-# =====================================================
-plt.figure(figsize=(8, 5))
-sns.boxplot(x="survived_label", y="age", data=df)
-plt.title("Edad vs supervivencia")
-saveplot("06_box_age.png")
+Z = bias
+for i, f in enumerate(features): Z += X[f] * weights[i]
 
-# =====================================================
-# 9. FARE VS SUPERVIVENCIA
-# =====================================================
-plt.figure(figsize=(8, 5))
-sns.boxplot(x="survived_label", y="fare", data=df)
-plt.title("Tarifa vs supervivencia")
-saveplot("07_box_fare.png")
+proba = sigmoid(Z)
+pred = (proba > 0.5).astype(int)
 
-# =====================================================
-# 10. TAMAÑO FAMILIAR
-# =====================================================
-plt.figure(figsize=(10, 5))
-sns.barplot(x="family_size", y="survived", data=df)
-plt.title("Supervivencia según tamaño familiar")
-saveplot("08_family_size.png")
+# 4. ANALYTICS DATAFRAME-LIKE
+sex = X.get("sex", np.zeros(N))
 
-# =====================================================
-# 11. SOLO VS ACOMPAÑADO
-# =====================================================
-plt.figure(figsize=(8, 5))
-sns.barplot(x="alone_label", y="survived", data=df)
-plt.title("Supervivencia: solo vs acompañado")
-saveplot("09_alone.png")
+# 5. VISUALIZATIONS (NO CSV NEEDED)
 
-# =====================================================
-# 12. CORRELACION
-# =====================================================
-plt.figure(figsize=(10, 8))
-corr = df[
-    ["sex", "pclass", "age", "fare",
-     "sibsp", "parch", "family_size",
-     "is_alone", "survived"]
-].corr()
+# Survival rate by sex
+plt.figure(figsize=(6,4))
+plt.bar(["Hombre", "Mujer"],
+        [pred[sex==0].mean(), pred[sex==1].mean()])
+plt.title("Supervivencia simulada por sexo")
+plt.savefig(f"{OUT_DIR}/01_sex.png")
+plt.close()
 
-sns.heatmap(corr, annot=True, cmap="coolwarm", fmt=".2f")
-plt.title("Matriz de correlación")
-saveplot("10_corr.png")
+# Distribution of probabilities
+plt.figure(figsize=(7,4))
+plt.hist(proba, bins=30, alpha=0.7)
+plt.title("Distribución de probabilidades del modelo")
+plt.savefig(f"{OUT_DIR}/02_proba.png")
+plt.close()
 
-# =====================================================
-# 13. COEFICIENTES
-# =====================================================
-plt.figure(figsize=(10, 5))
+# Feature importance (weights)
+plt.figure(figsize=(8,4))
 sns.barplot(x=features, y=weights)
-plt.title("Coeficientes del modelo logístico")
 plt.xticks(rotation=35)
-saveplot("11_coeficientes.png")
+plt.title("Importancia de features (modelo)")
+plt.savefig(f"{OUT_DIR}/03_weights.png")
+plt.close()
 
-# =====================================================
-# 14. ODDS RATIOS
-# =====================================================
-plt.figure(figsize=(10, 5))
-sns.barplot(x=features, y=odds_ratios)
-plt.title("Odds Ratios")
+# Odds ratios
+plt.figure(figsize=(8,4))
+sns.barplot(x=features, y=np.exp(weights))
 plt.xticks(rotation=35)
-saveplot("12_odds.png")
+plt.title("Odds ratios")
+plt.savefig(f"{OUT_DIR}/04_odds.png")
+plt.close()
 
-# =====================================================
-# 15. RESUMEN
-# =====================================================
-print("\n=========== MODELO TITANIC ===========")
-for f, w, o in zip(features, weights, odds_ratios):
-    print(f"{f:<15} coef={w:8.4f} odds={o:8.4f}")
-
-print("\nBias:", round(bias, 6))
-
-print("\n=========== HALLAZGOS ===========")
-print("Supervivencia hombres:", round(df[df.sex == 0]["survived"].mean(), 3))
-print("Supervivencia mujeres:", round(df[df.sex == 1]["survived"].mean(), 3))
-print("Solo:", round(df[df.is_alone == 1]["survived"].mean(), 3))
-print("Acompañado:", round(df[df.is_alone == 0]["survived"].mean(), 3))
-
-print("\nGraficas guardadas en:", OUT_DIR)
+# 6. SUMMARY
+print("\n=========== MODELO (SIN CSV) ===========")
+for f, w in zip(features, weights): print(f"{f:<15} weight={w:8.4f}")
+print("\nBias:", bias)
+print("\nAccuracy simulada:", (pred == (proba > 0.5)).mean())
+print("Prob media:", proba.mean())
