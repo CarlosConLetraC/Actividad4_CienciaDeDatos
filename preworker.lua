@@ -1,5 +1,4 @@
 import("Table", "csvfast", "json", "system", "cml", "cstats")
-
 local csv = csvfast
 
 local string_format = string.format
@@ -14,19 +13,16 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 	-- LOAD CSV
 	local columns = csv.read_columns(inputCSV)
-
 	local priceCol = columns.sellingprice
 	local odoCol   = columns.odometer
 	local mmrCol   = columns.mmr
 
 	assert(priceCol and odoCol and mmrCol, "faltan columnas")
-
 	local totalRows = #priceCol
 
 	-- SHARDING
 	local base = math_floor(totalRows / totalWorkers)
 	local extra = totalRows % totalWorkers
-
 	local start_row, limit
 
 	if workerId <= extra then
@@ -100,19 +96,15 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 	-- DEBUG
 	system.print("===== WORKER " .. workerId .. " =====")
-
 	system.print("R2 Train:", result.train.r2)
 	system.print("R2 Test:", result.test.r2)
-
 	system.print("MSE Train:", result.train.mse)
 	system.print("MSE Test:", result.test.mse)
-
 	system.print("RMSE Train:", result.train.rmse)
 	system.print("RMSE Test:", result.test.rmse)
 
 	-- PREDICTIONS
 	local predictions = {}
-
 	local y_real = {}
 	local y_pred = {}
 
@@ -122,7 +114,6 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 
 		table_insert(y_real, real)
 		table_insert(y_pred, pred)
-
 		table_insert(predictions, {
 			real = real,
 			pred = pred,
@@ -172,14 +163,10 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	}
 
 	local jsonPath = string_format("data/output_worker_%d.json", workerId)
-
 	local f = assert(io.open(jsonPath, "w"))
 	f:write(json.encode(salida))
 	f:close()
-
 	system.print("[Worker " .. workerId .. "] JSON guardado")
 end
 
-return {
-	start = start
-}
+return {start = start}

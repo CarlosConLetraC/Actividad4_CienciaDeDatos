@@ -203,7 +203,3 @@ La actividad demuestra que es posible construir una plataforma propia de anális
 El proyecto integra conocimientos de sistemas, concurrencia, optimización y ciencia de datos aplicada.
 
 ---
-
-# Autor
-
-**CarlosConLetraC**
