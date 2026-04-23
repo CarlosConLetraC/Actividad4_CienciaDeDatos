@@ -1,6 +1,6 @@
 ## Casos de uso implementados
 
-- Actividad 4: Ciencia de datos distribuida sobre dataset de autos  
+- Actividad 4: Ciencia de datos sobre dataset de autos  
 Ver documentación en `ACTIVIDAD4_parte1.md`
 
 ---
@@ -10,129 +10,85 @@ https://github.com/CarlosConLetraC/Moduler/
 
 A CONTINUACIÓN SE DOCUMENTA LA VERSIÓN ACTUALIZADA DEL SISTEMA.
 
-# Moduler
+# Moduler (Actividad 4 - Ciencia de Datos)
 
-Moduler es un **motor de ejecución concurrente de scripts LuaJIT con arquitectura tipo scheduler/worker**, diseñado para ejecutar múltiples programas en paralelo con control de colas, prioridades, retries y aislamiento por proceso.
+Moduler es un **motor de ejecución concurrente de jobs basado en LuaJIT
+y C++**, diseñado para procesar tareas de ciencia de datos de forma
+paralela mediante un scheduler propio, un thread pool interno y un
+sistema de ejecución aislada por scripts.
 
----
+El sistema integra un pipeline completo que incluye: - ejecución
+concurrente de jobs - procesamiento de datos - entrenamiento de modelos
+de machine learning ligeros - exportación de resultados en JSON -
+análisis posterior en Python
 
-## Arquitectura actual
+------------------------------------------------------------------------
 
-El sistema ha evolucionado a un modelo inspirado en sistemas tipo **Celery / job scheduler distribuido**, dividido en tres capas:
+# Arquitectura general
 
----
+El sistema está dividido en cuatro capas principales:
 
-### Backend (C++)
+## Backend en C++ (núcleo del sistema)
 
-El backend ahora es el núcleo del sistema y está implementado en C++.
+Ubicado en: backend.cpp libbackend/
 
-Responsabilidades:
+Componentes principales: - Scheduler: gestión de jobs pendientes y
+prioridades - Broker: distribución de jobs entre workers - ThreadPool:
+ejecución concurrente controlada - Worker: ejecución de scripts LuaJIT
+aislados
 
-- Scheduler central con colas:
-  - `pending queue`
-  - `priority queue (ready)`
-  - `delayed retry queue`
-- ThreadPool interno para ejecución concurrente
-- Dispatcher thread basado en eventos (condition_variable)
-- Control de carga (anti storm / rate limiting)
-- Sistema de retries con backoff temporal
-- Ejecución de scripts LuaJIT mediante `system()`
+------------------------------------------------------------------------
 
----
+## Librerías de Machine Learning y datos (C/C++)
 
-### ThreadPool (C++)
+Ubicado en: cpplibs/ clibs/
 
-- Pool fijo de workers
-- Cola de tareas protegida por mutex
-- Ejecución paralela controlada
-- Backpressure básico para evitar saturación
+-   cml.cpp → regresión logística y modelo lineal básico
+-   csvfast.cpp → parser optimizado de CSV
+-   cstats.c → estadísticas
 
----
+------------------------------------------------------------------------
 
-### Worker (LuaJIT runtime)
+## Runtime LuaJIT
 
-Cada job ejecuta un script LuaJIT aislado:
+Ubicado en: import/
 
-- `luajit -l import/init <script>`
-- Procesamiento de datos independiente por job
-- Generación de resultados (JSON, logs, métricas)
-- Ejecución paralela sin estado compartido
+Extiende LuaJIT con: - JSON parser - CSV utilities - system bridge -
+vectores y matemáticas - sistema de tareas
 
----
+------------------------------------------------------------------------
 
-## Características
+## Pipeline de ejecución
 
-- Ejecución concurrente de scripts LuaJIT
-- Scheduler central con prioridad de jobs
-- Sistema de retries con delay (backoff simple)
-- Control de carga para evitar “task storms”
-- Aislamiento por proceso (cada script es independiente)
-- Pipeline de datos distribuido por jobs
-- Logging sincronizado seguro en C++
+Scripts principales: program.actividad4_parte1.lua
+program.actividad4_parte2.lua preworker.lua
 
----
+Flujo: 1. creación de jobs 2. scheduling en backend C++ 3. ejecución en
+workers LuaJIT 4. generación de métricas 5. exportación JSON 6. análisis
+en Python
 
-## Cambios importantes respecto a la versión original
+------------------------------------------------------------------------
 
-- [#] Backend Java eliminado
-- [#] Modelo de ejecución basado en múltiples procesos estáticos
-- [#] Sin control de colas ni scheduling
+# Características
 
-- [X] Nuevo backend en C++ (scheduler real)
-- [X] ThreadPool interno
-- [X] Dispatcher event-driven
-- [X] Retry system con delayed queue
-- [X] Control de sobrecarga (rate limiting)
-- [X] Arquitectura tipo Celery simplificada
+-   ejecución concurrente de jobs
+-   scheduler con colas
+-   thread pool en C++
+-   aislamiento por proceso LuaJIT
+-   retry system con backoff
+-   pipeline de ML embebido
 
----
+------------------------------------------------------------------------
 
-## Casos de uso
+# Casos de uso
 
-- Procesamiento paralelo de datasets
-- Entrenamiento de modelos por script Lua
-- Sistemas de simulación concurrente
-- Pipelines de datos distribuidos
-- Laboratorio de runtimes y schedulers
+-   procesamiento paralelo de datasets
+-   entrenamiento de modelos de ML
+-   análisis de rendimiento por worker
+-   simulación de pipelines de datos
 
----
+------------------------------------------------------------------------
 
-## Sistemas compatibles
+# Nota importante
 
-- Debian:
-  - 13 (Trixie)
-  - 12 (Bookworm)
-
-- Ubuntu:
-  - 22.04 (Jammy)
-  - 23.04 (Lunar Lobster)
-  - 24.04 (Noble)
-
-- Arch / CachyOS (probado en modo desarrollo; no recomendado para nivel producción)
-
----
-
-## Instalación
-
-```bash
-git clone --recursive https://github.com/CarlosConLetraC/Actividad4_CienciaDeDatos.git
-cd Actividad4_CienciaDeDatos
-chmod +x initconsole cmd runclient *.sh
-```
-
-## Configurar entorno
-```bash
-./configurarentorno.sh
-```
-
-## Compilar
-```bash
-./build.sh
-```
-
-## Ejecución
-```bash
-./run.sh
-```
-
----
+El sistema es concurrente local, NO distribuido en red.
