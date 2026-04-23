@@ -1,7 +1,9 @@
 ## Casos de uso implementados
 
-- Actividad 4: Ciencia de datos sobre dataset de autos  
-Ver documentación en `ACTIVIDAD4_parte1.md`
+- Actividad 4: 
+ - Parte 1: ver documentación en `ACTIVIDAD4_parte1.md`
+ - Parte 2: ver documentación en `ACTIVIDAD4_parte2.md`
+
 
 ---
 
