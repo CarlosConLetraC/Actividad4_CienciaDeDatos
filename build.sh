@@ -16,3 +16,4 @@ fi
 echo "Compilando backend. . ."
 #g++ -std=c++17 backend.cpp -Ilibbackend -o backend -lpthread
 g++ -std=c++17 backend.cpp -o backend -lpthread
+echo "Hecho."
