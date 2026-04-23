@@ -1,8 +1,8 @@
 ## Casos de uso implementados
 
-- Actividad 4: 
- *   Parte 1: ver documentación en `ACTIVIDAD4_parte1.md`
- *   Parte 2: ver documentación en `ACTIVIDAD4_parte2.md`
++ Actividad 4: 
+    - Parte 1: ver documentación en `ACTIVIDAD4_parte1.md`
+    - Parte 2: ver documentación en `ACTIVIDAD4_parte2.md`
 
 
 ---
@@ -86,13 +86,13 @@ Posteriormente se analizan en Python.
 
 # Estructura
 
-backend.cpp → scheduler principal\
-libbackend/ → scheduler, broker, threadpool\
-cpplibs/ → ML y CSV engine\
-clibs/ → estadísticas\
-import/ → runtime LuaJIT\
-program.\*.lua → pipelines\
-data/ → datasets
+backend.cpp => scheduler principal\
+libbackend/ => scheduler, broker, threadpool\
+cpplibs/ => ML y CSV engine\
+clibs/ => estadísticas\
+import/ => runtime LuaJIT\
+program.\*.lua => pipelines\
+data/ => datasets
 
 ------------------------------------------------------------------------
 
