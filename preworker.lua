@@ -12,7 +12,7 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	totalWorkers = tonumber(totalWorkers)
 
 	-- LOAD CSV
-	local columns = csv.read_columns(inputCSV)
+	local columns  = csv.read_columns(inputCSV)
 	local priceCol = columns.sellingprice
 	local odoCol   = columns.odometer
 	local mmrCol   = columns.mmr
