@@ -4,20 +4,15 @@ local csv   = csvfast
 local stats = cstats
 
 -- LOAD RAW DATA
-local file_name = system.curldownload(
-    "https://www.openml.org/data/get_csv/16826755/phpMYEkMl",
-    true
-)
-
+local file_name = system.curldownload("https://www.openml.org/data/get_csv/16826755/phpMYEkMl", true)
 local data = csv.read_columns(file_name)
-assert(data, "no se pudo cargar dataset")
+blund(data, "no se pudo cargar dataset")
 
 -- BUILD DATASET (MEMORY ONLY)
 local dataset = {}
 local rows = #data.survived
 
-for i = 1, rows do
-
+for i = 1, rows, 1 do
     local sex   = data.sex[i]
     local age   = tonumber(data.age[i]) or 0/0
     local fare  = data.fare[i]
@@ -26,13 +21,14 @@ for i = 1, rows do
     local parch = data.parch[i]
     local surv  = data.survived[i]
 
-    -- filtro mínimo NaN-safe
+    -- filtro minimo NaN-safe
     if age == age and fare == fare and pcls == pcls and surv == surv then
 
         local family_size = sibsp + parch + 1
         local is_alone = (family_size == 1) and 1 or 0
 
-        dataset[#dataset + 1] = {
+        --[[dataset[#dataset + 1] =]]
+        table.insert(dataset, {
             sex = (sex == "female") and 1 or 0,
             pclass = pcls,
             age = age,
@@ -42,12 +38,12 @@ for i = 1, rows do
             family_size = family_size,
             is_alone = is_alone,
             survived = (surv == 1 or surv == "1" or surv == true) and 1 or 0
-        }
+        })
     end
 end
 
 print("Dataset limpio:", #dataset)
-assert(#dataset > 20, "dataset insuficiente")
+blund(#dataset > 20, "dataset insuficiente")
 
 Table.shuffle(dataset)
 
@@ -95,6 +91,9 @@ local export = model:export()
 
 -- FIX: separar bias si viene incluido en weights
 if #export.weights == #features + 1 then
+    export.bias = table.remove(export.weights, 1)
+end
+--[[if #export.weights == #features + 1 then
     export.bias = export.weights[1]
     
     local new_weights = {}
@@ -102,7 +101,7 @@ if #export.weights == #features + 1 then
         new_weights[#new_weights + 1] = export.weights[i]
     end
     export.weights = new_weights
-end
+end]]
 
 local f = assert(io.open("data/coeficientes.json", "w"))
 f:write(json.encode(export))
@@ -113,5 +112,5 @@ local sample = dataset[#dataset]
 
 print("===== EJEMPLO =====")
 print("Valor real   :", sample.survived)
-print("Predicción   :", model:predict(sample))
+print("Prediccion   :", model:predict(sample))
 print("Probabilidad :", model:probability(sample))
