@@ -46,13 +46,14 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 	local odo_list   = {}
 	local mmr_list   = {}
 
-	for i = start_row, end_row, 1 do
-		local price = priceCol[i]
-		local odom  = odoCol[i]
-		local mmr   = mmrCol[i]
+	csv.each(inputCSV, function(row, emitted, i)
+		local price = row.sellingprice
+		local odom  = row.odometer
+		local mmr   = row.mmr
 
 		if price and odom and mmr then
 			out:write(string_format("%f,%f,%f\n", price, odom, mmr))
+
 			table_insert(dataset, {
 				Odometer = odom,
 				MMR = mmr,
@@ -63,7 +64,10 @@ local function start(workerId, totalWorkers, inputCSV, outputPrefix)
 			table_insert(odo_list, odom)
 			table_insert(mmr_list, mmr)
 		end
-	end
+	end, {
+		start_row = start_row,
+		limit = limit
+	})
 
 	out:close()
 
