@@ -4,7 +4,7 @@ ENV SHELL=/bin/bash
 ENV HOME=/home/pc
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt update && apt install -y sudo
+RUN apt update && apt install -y sudo git
 
 RUN adduser --disabled-password --gecos "" pc
 RUN echo "pc:1234" | chpasswd
