@@ -112,6 +112,13 @@ https://github.com/CarlosConLetraC/Actividad4_CienciaDeDatos.git\
 cd Actividad4_CienciaDeDatos\
 chmod +x initconsole cmd runclient \*.sh
 ```
+
+------------------------------------------------------------------------
+
+# Configurar el entorno (recomendado usar podman)
+```bash
+./configurarentorno.sh
+```
 ------------------------------------------------------------------------
 
 # Build
@@ -124,3 +131,5 @@ chmod +x initconsole cmd runclient \*.sh
 ```bash
 ./run.sh
 ```
+
+------------------------------------------------------------------------
