@@ -10,85 +10,108 @@ https://github.com/CarlosConLetraC/Moduler/
 
 A CONTINUACIÓN SE DOCUMENTA LA VERSIÓN ACTUALIZADA DEL SISTEMA.
 
-# Moduler (Actividad 4 - Ciencia de Datos)
+# Moduler
 
-Moduler es un **motor de ejecución concurrente de jobs basado en LuaJIT
-y C++**, diseñado para procesar tareas de ciencia de datos de forma
-paralela mediante un scheduler propio, un thread pool interno y un
-sistema de ejecución aislada por scripts.
+Moduler es un motor de ejecución concurrente de scripts LuaJIT con
+arquitectura tipo scheduler/worker, diseñado para ejecutar múltiples
+programas en paralelo con control de colas, prioridades, retries y
+aislamiento por proceso.
 
-El sistema integra un pipeline completo que incluye: - ejecución
-concurrente de jobs - procesamiento de datos - entrenamiento de modelos
-de machine learning ligeros - exportación de resultados en JSON -
-análisis posterior en Python
+Basado en un proyecto previo del autor:
+https://github.com/CarlosConLetraC/Moduler/
 
 ------------------------------------------------------------------------
 
-# Arquitectura general
+# Arquitectura del sistema
 
-El sistema está dividido en cuatro capas principales:
+El sistema está dividido en tres capas principales:
 
-## Backend en C++ (núcleo del sistema)
+## Backend (C++)
 
-Ubicado en: backend.cpp libbackend/
+El backend es el núcleo del sistema.
 
-Componentes principales: - Scheduler: gestión de jobs pendientes y
-prioridades - Broker: distribución de jobs entre workers - ThreadPool:
-ejecución concurrente controlada - Worker: ejecución de scripts LuaJIT
-aislados
+Responsabilidades: - Scheduler con colas (pending, priority, retry) -
+ThreadPool interno - Dispatcher event-driven - Sistema de retries con
+backoff - Ejecución de LuaJIT por proceso aislado
 
-------------------------------------------------------------------------
+## ThreadPool (C++)
 
-## Librerías de Machine Learning y datos (C/C++)
+-   Workers fijos
+-   Cola protegida por mutex
+-   Ejecución concurrente
+-   Control de saturación
 
-Ubicado en: cpplibs/ clibs/
+## Worker (LuaJIT)
 
--   cml.cpp → regresión logística y modelo lineal básico
--   csvfast.cpp → parser optimizado de CSV
--   cstats.c → estadísticas
-
-------------------------------------------------------------------------
-
-## Runtime LuaJIT
-
-Ubicado en: import/
-
-Extiende LuaJIT con: - JSON parser - CSV utilities - system bridge -
-vectores y matemáticas - sistema de tareas
-
-------------------------------------------------------------------------
-
-## Pipeline de ejecución
-
-Scripts principales: program.actividad4_parte1.lua
-program.actividad4_parte2.lua preworker.lua
-
-Flujo: 1. creación de jobs 2. scheduling en backend C++ 3. ejecución en
-workers LuaJIT 4. generación de métricas 5. exportación JSON 6. análisis
-en Python
+Cada job ejecuta scripts LuaJIT aislados: - procesamiento de datos -
+generación de métricas - exportación JSON - pipelines de ML
 
 ------------------------------------------------------------------------
 
 # Características
 
 -   ejecución concurrente de jobs
--   scheduler con colas
--   thread pool en C++
--   aislamiento por proceso LuaJIT
+-   scheduler con prioridades
 -   retry system con backoff
--   pipeline de ML embebido
+-   control de carga
+-   aislamiento por proceso
+-   pipeline de datos por jobs
+
+------------------------------------------------------------------------
+
+# Actividad 4 - Ciencia de Datos
+
+Cada worker: - carga dataset - filtra datos inválidos - entrena modelo
+de regresión logística - calcula métricas (R2, MSE, RMSE, accuracy) -
+exporta resultados en JSON
+
+Posteriormente se analizan en Python.
 
 ------------------------------------------------------------------------
 
 # Casos de uso
 
 -   procesamiento paralelo de datasets
--   entrenamiento de modelos de ML
--   análisis de rendimiento por worker
--   simulación de pipelines de datos
+-   entrenamiento de modelos ML ligeros
+-   simulación de pipelines
+-   laboratorio de sistemas concurrentes
 
 ------------------------------------------------------------------------
 
-# Nota importante
+# Estructura
 
-El sistema es concurrente local, NO distribuido en red.
+backend.cpp → scheduler principal\
+libbackend/ → scheduler, broker, threadpool\
+cpplibs/ → ML y CSV engine\
+clibs/ → estadísticas\
+import/ → runtime LuaJIT\
+program.\*.lua → pipelines\
+data/ → datasets
+
+------------------------------------------------------------------------
+
+# Nota
+
+Este sistema es concurrente local, no distribuido en red.
+
+------------------------------------------------------------------------
+
+# Instalación
+```bash
+git clone --recursive
+https://github.com/CarlosConLetraC/Actividad4_CienciaDeDatos.git\
+cd Actividad4_CienciaDeDatos\
+chmod +x initconsole cmd runclient \*.sh
+```
+------------------------------------------------------------------------
+
+# Build
+```bash
+./build.sh
+```
+------------------------------------------------------------------------
+
+# Run
+```bash
+./run.sh
+```
