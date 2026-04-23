@@ -170,9 +170,7 @@ static std::vector<std::string> split_line(const std::string& line) {
 	bool in_quotes = false;
 
 	for (size_t i = 0; i < line.size(); i++) {
-
 		char c = line[i];
-
 		if (c == '"') {
 			in_quotes = !in_quotes;
 			continue;
@@ -249,15 +247,11 @@ static int l_read_columns(lua_State* L) {
 
 	// construir columnas finales
 	for (int c = 0; c < t->cols; c++) {
-
 		t->num_cols[c].reserve(t->rows);
-
 		for (int r = 0; r < t->rows; r++) {
-
 			std::string v = (c < (int)raw[r].size()) ? raw[r][c] : "";
-
 			if (!t->is_numeric[c]) {
-				// columna string → se ignora en num_cols
+				// columna string => se ignora en num_cols
 				continue;
 			}
 
@@ -273,15 +267,10 @@ static int l_read_columns(lua_State* L) {
 	lua_newtable(L);
 
 	for (int c = 0; c < t->cols; c++) {
-
 		lua_newtable(L);
-
 		if (t->is_numeric[c]) {
-
 			const auto& col = t->num_cols[c];
-
-			for (int i = 0; i < (int)col.size(); i++) {
-
+			for (size_t i = 0; i < (size_t)col.size(); i++) {
 				if (std::isnan(col[i])) {
 					lua_pushnumber(L, NAN);   // IMPORTANTISIMO para pandas
 				} else {
@@ -290,16 +279,13 @@ static int l_read_columns(lua_State* L) {
 
 				lua_rawseti(L, -2, i + 1);
 			}
-
 		} else {
-
 			for (int i = 0; i < t->rows; i++) {
-				std::string v = (c < (int)raw[i].size()) ? sanitize(raw[i][c]) : "";
+				std::string v = (c < (size_t)raw[i].size()) ? sanitize(raw[i][c]) : "";
 				lua_pushstring(L, v.c_str());
 				lua_rawseti(L, -2, i + 1);
 			}
 		}
-
 		lua_setfield(L, -2, t->headers[c].c_str());
 	}
 
@@ -311,26 +297,19 @@ static int l_read_columns(lua_State* L) {
 
 // SAVE COLUMNS
 static int l_save_columns(lua_State* L) {
-
 	luaL_checktype(L, 1, LUA_TTABLE);
 	const char* path = luaL_checkstring(L, 2);
-
 	std::ofstream out(path);
-	if (!out.is_open())
-		return luaL_error(L, "cannot open output file");
+	if (!out.is_open()) return luaL_error(L, "cannot open output file");
 
 	std::vector<std::string> headers;
 
 	// recolectar columnas
 	lua_pushnil(L);
 	while (lua_next(L, 1)) {
-
 		if (lua_type(L, -2) == LUA_TSTRING) {
-
 			std::string key = lua_tostring(L, -2);
-
-			if (key != "_ptr")
-				headers.push_back(key);
+			if (key != "_ptr") headers.push_back(key);
 		}
 
 		lua_pop(L, 1);
@@ -347,51 +326,35 @@ static int l_save_columns(lua_State* L) {
 		out << headers[i];
 	}
 	out << "\n";
-
-	// detectar filas máximas
+	// detectar filas maximas
 	int rows = 0;
 
 	for (size_t i = 0; i < headers.size(); i++) {
-
 		lua_getfield(L, 1, headers[i].c_str());
 		int n = (int)lua_rawlen(L, -1);
 		lua_pop(L, 1);
-
 		if (n > rows) rows = n;
 	}
 
 	// DATA
 	for (int r = 1; r <= rows; r++) {
-
 		for (size_t c = 0; c < headers.size(); c++) {
-
 			if (c) out << ",";
-
 			lua_getfield(L, 1, headers[c].c_str());
 			lua_rawgeti(L, -1, r);
-
 			int t = lua_type(L, -1);
-
 			if (t == LUA_TNUMBER) {
-
 				double v = lua_tonumber(L, -1);
-
-				// NaN / inf → vacío
-				if (std::isfinite(v))
-					out << v;
-
+				// NaN / inf => vacio
+				if (std::isfinite(v)) out << v;
 			} 
 			else if (t == LUA_TSTRING) {
-
 				std::string s = lua_tostring(L, -1);
-
 				if (is_missing_string(s)) {
 					out << "";
 				} else {
 					s = sanitize(s);
-
 					bool quote = (s.find(',') != std::string::npos || s.find('"') != std::string::npos);
-
 					if (quote) {
 						out << "\"";
 						for (char ch : s) {
@@ -404,10 +367,8 @@ static int l_save_columns(lua_State* L) {
 					}
 				}
 			}
-
 			lua_pop(L, 2);
 		}
-
 		out << "\n";
 	}
 
@@ -419,20 +380,15 @@ static int l_save_columns(lua_State* L) {
 
 // COUNT ROWS
 static int l_count_rows(lua_State* L) {
-
 	const char* path = luaL_checkstring(L, 1);
-
 	std::ifstream file(path);
-	if (!file.is_open())
-		return luaL_error(L, "cannot open file");
+	if (!file.is_open()) return luaL_error(L, "cannot open file");
 
 	std::string line;
-
 	std::getline(file, line); // header
 
 	int rows = 0;
-	while (std::getline(file, line))
-		rows++;
+	while (std::getline(file, line)) rows++;
 
 	lua_pushinteger(L, rows);
 	return 1;
@@ -467,7 +423,6 @@ static int l_variance(lua_State* L) {
 
 	lua_pushnil(L);
 	while (lua_next(L, 1)) {
-
 		double v = lua_tonumber(L, -1);
 
 		if (!std::isnan(v)) {
@@ -484,7 +439,6 @@ static int l_variance(lua_State* L) {
 
 // TO NUMBER
 static int l_to_number(lua_State* L) {
-
 	const char* s = luaL_checkstring(L, 1);
 
 	double v;
@@ -499,7 +453,6 @@ static int l_to_number(lua_State* L) {
 
 // EACH
 static int l_each(lua_State* L) {
-
 	const char* path = luaL_checkstring(L, 1);
 	luaL_checktype(L, 2, LUA_TFUNCTION);
 
@@ -530,42 +483,25 @@ static int l_each(lua_State* L) {
 			limit = (int)lua_tointeger(L, -1);
 		lua_pop(L, 1);
 	}
-
 	if (sample <= 0) sample = 1;
-
 	std::ifstream file(path);
-	if (!file.is_open())
-		return luaL_error(L, "cannot open file");
+	if (!file.is_open()) return luaL_error(L, "cannot open file");
 
 	std::string line;
-
-	if (!std::getline(file, line))
-		return 0;
-
+	if (!std::getline(file, line)) return 0;
 	std::vector<std::string> headers = split_line(line);
 
 	int i = 0;
 	int emitted = 0;
 
 	while (std::getline(file, line)) {
-
 		line = clean_cr(line);
-
-		if (trim(line).empty())
-			continue;
-
+		if (trim(line).empty()) continue;
 		i++;
-
-		if (i < start_row)
-			continue;
-
+		if (i < start_row) continue;
 		int rel_i = i - start_row + 1;
-
-		if (rel_i <= offset)
-			continue;
-
-		if (((rel_i - offset) % sample) != 0)
-			continue;
+		if (rel_i <= offset) continue;
+		if (((rel_i - offset) % sample) != 0) continue;
 
 		std::vector<std::string> cols = split_line(line);
 
@@ -573,16 +509,10 @@ static int l_each(lua_State* L) {
 		lua_newtable(L);     // row
 
 		for (size_t c = 0; c < headers.size(); c++) {
-
 			std::string h = headers[c];
 			if (h.empty()) continue;
-
-			std::string v =
-				(c < cols.size()) ? unquote(cols[c]) : "";
-
-			if (is_invalid(v))
-				continue;
-
+			std::string v = (c < cols.size()) ? unquote(cols[c]) : "";
+			if (is_invalid(v)) continue;
 			double num;
 
 			if (to_number(v, num))

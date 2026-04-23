@@ -31,9 +31,8 @@ struct Job {
 
     std::chrono::steady_clock::time_point runAt;
 
-    Job(std::string scriptPath, int prio = 0)
-        : id(nextId++),
-          script(std::move(scriptPath)),
-          priority(prio),
-          runAt(std::chrono::steady_clock::now()) {}
+    Job(std::string scriptPath, int prio = 0) : id(nextId++),
+        script(std::move(scriptPath)),
+        priority(prio),
+        runAt(std::chrono::steady_clock::now()) {}
 };

@@ -38,9 +38,7 @@ private:
     std::priority_queue<Job, std::vector<Job>, Compare> ready;
 
 public:
-    explicit Scheduler(size_t threads)
-        : pool(threads) {}
-
+    explicit Scheduler(size_t threads) : pool(threads) {}
     void start() {
         dispatcherThread = std::thread([this] {
             runDispatcher();
@@ -49,8 +47,7 @@ public:
 
     void stopScheduler() {
         stop = true;
-        if (dispatcherThread.joinable())
-            dispatcherThread.join();
+        if (dispatcherThread.joinable()) dispatcherThread.join();
     }
 
     void submit(Job job) {
