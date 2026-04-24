@@ -41,14 +41,14 @@ Fuente: https://www.openml.org/data/get_csv/16826755/phpMYEkMl
 
 ## Variables Independientes
 
--   sex
--   pclass
--   age
--   fare
--   sibsp
--   parch
--   family_size
--   is_alone
+  -   sex
+  -   pclass
+  -   age
+  -   fare
+  -   sibsp
+  -   parch
+  -   family_size
+  -   is_alone
 
 Dataset limpio final: **1045 registros**
 
