@@ -91,16 +91,16 @@ Realizada en C++:
 
 # Coeficientes
 
-  Variable      Peso
-  ------------- ---------
-  sex           1.2084
-  pclass        -0.8700
-  age           -0.5948
-  fare          0.0764
-  sibsp         -0.3726
-  parch         -0.0048
-  family_size   -0.2389
-  is_alone      -0.3877
+  | Variable | Peso |
+  |-------------|---------|
+  |sex | 1.2084 |
+  |pclass | -0.8700 |
+  |age | -0.5948 |
+  |fare | 0.0764 |
+  |sibsp | -0.3726 |
+  |parch | -0.0048 |
+  |family_size | -0.2389 |
+  |is_alone | -0.3877 |
 
 Bias: -0.4143
 
