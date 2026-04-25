@@ -424,9 +424,7 @@ static const luaL_Reg lib[] = {
 };
 
 
-// =====================================================
 // LOGISTIC REGRESSION
-// =====================================================
 struct LogisticRegression {
 
     std::vector<std::string> features;
@@ -440,9 +438,7 @@ struct LogisticRegression {
     std::vector<double> mean_x;
     std::vector<double> std_x;
 
-    // -----------------------------------------
     // LOAD DATASET
-    // -----------------------------------------
     void build_matrix(lua_State* L, int idx) {
 
         X.clear();
@@ -486,9 +482,9 @@ struct LogisticRegression {
         }
     }
 
-    // -----------------------------------------
+
     // NORMALIZATION
-    // -----------------------------------------
+
     void compute_stats() {
 
         int n = (int)X.size();
@@ -527,9 +523,6 @@ struct LogisticRegression {
                 X[i][j] = (X[i][j] - mean_x[j]) / std_x[j];
     }
 
-    // -----------------------------------------
-    // SIGMOID
-    // -----------------------------------------
     static inline double sigmoid(double z) {
 
         if (z > 35.0) return 1.0;
@@ -538,9 +531,7 @@ struct LogisticRegression {
         return 1.0 / (1.0 + std::exp(-z));
     }
 
-    // -----------------------------------------
     // TRAIN
-    // -----------------------------------------
     void fit(double lr, int epochs) {
 
         int n = (int)X.size();
@@ -573,9 +564,6 @@ struct LogisticRegression {
         }
     }
 
-    // -----------------------------------------
-    // PROBABILITY
-    // -----------------------------------------
     double probability_row(lua_State* L, int idx) {
 
         int k = (int)features.size();
@@ -600,11 +588,7 @@ struct LogisticRegression {
         return probability_row(L, idx) >= 0.5 ? 1.0 : 0.0;
     }
 
-    // -----------------------------------------
-    // ACCURACY
-    // -----------------------------------------
     double accuracy(lua_State* L, int idx) {
-
         int n = (int)lua_rawlen(L, idx);
         int ok = 0;
         int total = 0;
@@ -644,7 +628,6 @@ static LogisticRegression* check_logr(lua_State* L) {
     );
 }
 
-// -----------------------------------------
 static int logr_new(lua_State* L) {
 
     auto** obj =
@@ -676,14 +659,12 @@ static int logr_new(lua_State* L) {
     return 1;
 }
 
-// -----------------------------------------
 static int logr_normalize(lua_State* L) {
     auto* m = check_logr(L);
     m->normalize();
     return 0;
 }
 
-// -----------------------------------------
 static int logr_train(lua_State* L) {
     auto* m = check_logr(L);
 
@@ -694,35 +675,30 @@ static int logr_train(lua_State* L) {
     return 0;
 }
 
-// -----------------------------------------
 static int logr_load(lua_State* L) {
     auto* m = check_logr(L);
     m->build_matrix(L, 2);
     return 0;
 }
 
-// -----------------------------------------
 static int logr_predict(lua_State* L) {
     auto* m = check_logr(L);
     lua_pushnumber(L, m->predict_row(L, 2));
     return 1;
 }
 
-// -----------------------------------------
 static int logr_probability(lua_State* L) {
     auto* m = check_logr(L);
     lua_pushnumber(L, m->probability_row(L, 2));
     return 1;
 }
 
-// -----------------------------------------
 static int logr_accuracy(lua_State* L) {
     auto* m = check_logr(L);
     lua_pushnumber(L, m->accuracy(L, 2));
     return 1;
 }
 
-// -----------------------------------------
 static int logr_gc(lua_State* L) {
 
     auto** obj =
@@ -734,7 +710,6 @@ static int logr_gc(lua_State* L) {
     return 0;
 }
 
-// -----------------------------------------
 static int logr_fit(lua_State* L) {
     auto* m = check_logr(L);
 
@@ -777,7 +752,7 @@ static int logr_fit(lua_State* L) {
     m->normalize();
     m->fit(lr, epochs);
 
-    // ---------------- TRAIN ACCURACY ----------------
+    // TRAIN ACCURACY
     int ok_train = 0;
     for (int i = 0; i < (int)Xtrain.size(); i++) {
 
@@ -794,7 +769,7 @@ static int logr_fit(lua_State* L) {
 
     double acc_train = (double)ok_train / Xtrain.size();
 
-    // ---------------- TEST ACCURACY ----------------
+    // TEST ACCURACY
     int ok_test = 0;
     for (int i = 0; i < (int)Xtest.size(); i++) {
 
@@ -810,14 +785,12 @@ static int logr_fit(lua_State* L) {
         }
 
         double pred = LogisticRegression::sigmoid(z) >= 0.5 ? 1.0 : 0.0;
-
-        if (pred == ytest[i])
-            ok_test++;
+        if (pred == ytest[i]) ok_test++;
     }
 
     double acc_test = (double)ok_test / Xtest.size();
 
-    // ---------------- RETURN LUA TABLE ----------------
+    // RETURN "LUA TABLE"
     lua_newtable(L);
 
     // TRAIN
