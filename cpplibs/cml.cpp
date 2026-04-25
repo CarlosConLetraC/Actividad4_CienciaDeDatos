@@ -91,7 +91,6 @@ struct LinearRegression {
             bool ok = true;
 
             for (int j = 0; j < k; j++) {
-
                 lua_getfield(L, -1, features[j].c_str());
                 double v = to_number(L, -1);
                 lua_pop(L, 1);
