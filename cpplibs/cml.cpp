@@ -195,7 +195,6 @@ struct LinearRegression {
         double pred = weights[0];
 
         for (int j = 0; j < k; j++) {
-
             lua_getfield(L, idx, features[j].c_str());
             double v = to_number(L, -1);
             lua_pop(L, 1);
@@ -253,9 +252,7 @@ static Metrics evaluate(
     double ss_tot = 0.0;
 
     for (int i = 0; i < n; i++) {
-
         double pred = m.weights[0];
-
         for (int j = 0; j < k; j++)
             pred += m.weights[j + 1] * Xd[i][j];
 
