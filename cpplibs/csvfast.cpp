@@ -539,9 +539,7 @@ static int l_export_rows(lua_State* L) {
 
 	// 3. ROWS
 	for (int i = 1; i <= row_count; i++) {
-
 		lua_rawgeti(L, 1, i);
-
 		if (!lua_istable(L, -1)) {
 			lua_pop(L, 1);
 			continue;
@@ -549,14 +547,10 @@ static int l_export_rows(lua_State* L) {
 
 		for (size_t c = 0; c < headers.size(); c++) {
 			if (c) out << ",";
-
 			lua_getfield(L, -1, headers[c].c_str());
-
 			int t = lua_type(L, -1);
-
 			if (t == LUA_TNUMBER) {
 				double v = lua_tonumber(L, -1);
-
 				if (std::isfinite(v))
 					out << v;
 				else
@@ -564,16 +558,11 @@ static int l_export_rows(lua_State* L) {
 			}
 			else if (t == LUA_TSTRING) {
 				std::string s = lua_tostring(L, -1);
-
 				if (is_invalid(s)) {
 					out << "NaN";
 				} else {
 					s = sanitize(s);
-
-					bool quote =
-						(s.find(',') != std::string::npos ||
-						s.find('"') != std::string::npos);
-
+					bool quote = (s.find(',') != std::string::npos || s.find('"') != std::string::npos);
 					if (quote) {
 						out << "\"";
 						for (char ch : s) {
@@ -603,7 +592,6 @@ static int l_export_rows(lua_State* L) {
 
 // MODULE
 extern "C" {
-
 static const luaL_Reg funcs[] = {
 	{"read_columns", l_read_columns},
 	{"save_columns", l_save_columns},
@@ -619,5 +607,4 @@ int luaopen_csvfast(lua_State* L) {
 	luaL_newlib(L, funcs);
 	return 1;
 }
-
 }
